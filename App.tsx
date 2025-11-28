@@ -12,35 +12,62 @@ import { MENU_ITEMS } from './constants';
 import { CartItem, Product, Category } from './types';
 
 function App() {
-  const [currentPath, setCurrentPath] = useState(window.location.pathname);
+  // Get the actual pathname, handling rewrites
+  const getPath = () => {
+    let path = window.location.pathname;
+    
+    // If we're on index.html but should be on /admin (from rewrite)
+    // Check the referrer or use a different method
+    if (path === '/index.html') {
+      // Try to get the original path from sessionStorage (set by 404.html if used)
+      const savedPath = sessionStorage.getItem('originalPath');
+      if (savedPath) {
+        sessionStorage.removeItem('originalPath');
+        path = savedPath;
+        window.history.replaceState(null, '', path);
+      }
+    }
+    return path;
+  };
+
+  const [currentPath, setCurrentPath] = useState(getPath());
 
   useEffect(() => {
-    const handleLocationChange = () => {
-      setCurrentPath(window.location.pathname);
-    };
-
-    // Listen for popstate (back/forward buttons)
-    window.addEventListener('popstate', handleLocationChange);
-    
-    // Also check pathname on mount and when hash changes
-    const checkPath = () => {
-      const path = window.location.pathname;
-      if (path !== currentPath) {
-        setCurrentPath(path);
+    // Update path if it changed
+    const updatePath = () => {
+      const newPath = window.location.pathname;
+      if (newPath !== currentPath && newPath !== '/index.html') {
+        setCurrentPath(newPath);
       }
     };
+
+    // Check immediately
+    updatePath();
+
+    // Listen for navigation events
+    window.addEventListener('popstate', updatePath);
     
-    // Check periodically (for programmatic navigation)
-    const interval = setInterval(checkPath, 100);
+    // Also check periodically in case of async URL changes
+    const interval = setInterval(() => {
+      const path = window.location.pathname;
+      if (path === '/admin' && currentPath !== '/admin') {
+        setCurrentPath('/admin');
+      }
+    }, 100);
     
     return () => {
-      window.removeEventListener('popstate', handleLocationChange);
+      window.removeEventListener('popstate', updatePath);
       clearInterval(interval);
     };
   }, [currentPath]);
 
   // Handle admin route
-  if (currentPath === '/admin') {
+  if (currentPath === '/admin' || window.location.pathname === '/admin') {
+    // If URL shows /index.html but we're on /admin route, fix it
+    if (window.location.pathname === '/index.html') {
+      window.history.replaceState(null, '', '/admin');
+      setCurrentPath('/admin');
+    }
     return <Admin />;
   }
   const [activeCategory, setActiveCategory] = useState<string>(Category.ALL);
