@@ -1,16 +1,27 @@
 
 import React, { useState, useEffect } from 'react';
+import { CartItem } from '../types';
 
 interface CheckoutModalProps {
   isOpen: boolean;
   onClose: () => void;
   onClearCart: () => void;
   total: number;
+  items: CartItem[];
 }
 
-export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onClearCart, total }) => {
+export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onClearCart, total, items }) => {
   const [step, setStep] = useState(1);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    address: '',
+    phone: '',
+    deliveryDate: '',
+    deliveryTime: '12:00',
+    paymentMethod: 'Karta'
+  });
 
   // Calculate tomorrow's date for min attribute
   const tomorrow = new Date();
@@ -21,19 +32,61 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
     if (isOpen) {
       setStep(1);
       setIsSuccess(false);
+      setError(null);
+      setFormData({
+        name: '',
+        address: '',
+        phone: '',
+        deliveryDate: '',
+        deliveryTime: '12:00',
+        paymentMethod: 'Karta'
+      });
     }
   }, [isOpen]);
 
   if (!isOpen) return null;
 
-  const handlePay = (e: React.FormEvent) => {
+  const handlePay = async (e: React.FormEvent) => {
     e.preventDefault();
     setStep(2);
-    // Simulate API call
-    setTimeout(() => {
-        onClearCart();
-        setIsSuccess(true);
-    }, 1500);
+    setError(null);
+
+    try {
+      const orderData = {
+        customerName: formData.name,
+        address: formData.address,
+        phone: formData.phone || null,
+        deliveryDate: formData.deliveryDate,
+        deliveryTime: formData.deliveryTime,
+        paymentMethod: formData.paymentMethod,
+        items: items.map(item => ({
+          id: item.id,
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price
+        })),
+        total: total
+      };
+
+      const response = await fetch('http://localhost:5001/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create order');
+      }
+
+      onClearCart();
+      setIsSuccess(true);
+    } catch (err) {
+      console.error('Error creating order:', err);
+      setError('Nie udało się złożyć zamówienia. Spróbuj ponownie.');
+      setStep(1);
+    }
   };
 
   return (
@@ -63,15 +116,44 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                 </div>
 
                 <form onSubmit={handlePay} className="p-8 space-y-6">
+                    {error && (
+                        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                            {error}
+                        </div>
+                    )}
                     {step === 1 && (
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Imię i Nazwisko</label>
-                                <input required type="text" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Jan Kowalski" />
+                                <input 
+                                    required 
+                                    type="text" 
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                    className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-emerald-500 outline-none" 
+                                    placeholder="Jan Kowalski" 
+                                />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Adres Dostawy</label>
-                                <input required type="text" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="ul. Smaczna 12/3" />
+                                <input 
+                                    required 
+                                    type="text" 
+                                    value={formData.address}
+                                    onChange={(e) => setFormData({...formData, address: e.target.value})}
+                                    className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-emerald-500 outline-none" 
+                                    placeholder="ul. Smaczna 12/3" 
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Telefon (opcjonalnie)</label>
+                                <input 
+                                    type="tel" 
+                                    value={formData.phone}
+                                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                                    className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-emerald-500 outline-none" 
+                                    placeholder="+48 123 456 789" 
+                                />
                             </div>
                             
                             <div className="grid grid-cols-2 gap-4">
@@ -81,12 +163,18 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                                         required 
                                         type="date" 
                                         min={minDate}
+                                        value={formData.deliveryDate}
+                                        onChange={(e) => setFormData({...formData, deliveryDate: e.target.value})}
                                         className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 outline-none" 
                                     />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Godzina</label>
-                                    <select className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 outline-none">
+                                    <select 
+                                        value={formData.deliveryTime}
+                                        onChange={(e) => setFormData({...formData, deliveryTime: e.target.value})}
+                                        className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 outline-none"
+                                    >
                                         <option>12:00</option>
                                         <option>13:00</option>
                                         <option>14:00</option>
@@ -102,7 +190,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Płatność</label>
-                                <select className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 outline-none">
+                                <select 
+                                    value={formData.paymentMethod}
+                                    onChange={(e) => setFormData({...formData, paymentMethod: e.target.value})}
+                                    className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 outline-none"
+                                >
                                     <option>Karta</option>
                                     <option>Gotówka przy odbiorze</option>
                                     <option>BLIK</option>

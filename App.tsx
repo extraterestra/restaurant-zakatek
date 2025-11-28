@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { ProductCard } from './components/ProductCard';
@@ -7,10 +7,42 @@ import { CartSidebar } from './components/CartSidebar';
 import { CheckoutModal } from './components/CheckoutModal';
 import { AIChef } from './components/AIChef';
 import { Footer } from './components/Footer';
+import { Admin } from './components/Admin';
 import { MENU_ITEMS } from './constants';
 import { CartItem, Product, Category } from './types';
 
 function App() {
+  const [currentPath, setCurrentPath] = useState(window.location.pathname);
+
+  useEffect(() => {
+    const handleLocationChange = () => {
+      setCurrentPath(window.location.pathname);
+    };
+
+    // Listen for popstate (back/forward buttons)
+    window.addEventListener('popstate', handleLocationChange);
+    
+    // Also check pathname on mount and when hash changes
+    const checkPath = () => {
+      const path = window.location.pathname;
+      if (path !== currentPath) {
+        setCurrentPath(path);
+      }
+    };
+    
+    // Check periodically (for programmatic navigation)
+    const interval = setInterval(checkPath, 100);
+    
+    return () => {
+      window.removeEventListener('popstate', handleLocationChange);
+      clearInterval(interval);
+    };
+  }, [currentPath]);
+
+  // Handle admin route
+  if (currentPath === '/admin') {
+    return <Admin />;
+  }
   const [activeCategory, setActiveCategory] = useState<string>(Category.ALL);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -151,6 +183,7 @@ function App() {
         onClose={() => setIsCheckoutOpen(false)}
         onClearCart={() => setCartItems([])}
         total={cartTotalPrice}
+        items={cartItems}
       />
 
       <AIChef />
