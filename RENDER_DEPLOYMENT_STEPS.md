@@ -69,6 +69,8 @@ Click **"Add Environment Variable"** for each:
 **Environment Variables:**
 1. `VITE_API_URL` = `https://restaurant-backend.onrender.com` (use your actual backend URL)
 2. `GEMINI_API_KEY` = `<your-gemini-api-key>`
+   - 📝 **Need help getting the key?** See [HOW_TO_GET_GEMINI_API_KEY.md](./HOW_TO_GET_GEMINI_API_KEY.md)
+   - Quick link: https://aistudio.google.com/app/apikey
 
 4. Click **"Create Static Site"**
 5. Wait 5-10 minutes for deployment

@@ -65,6 +65,8 @@ Render is ideal for deploying both frontend and backend together with a PostgreS
 4. Scroll down to **"Environment Variables"** section and click **"Add Environment Variable"**:
    - Add: `VITE_API_URL` = `https://restaurant-backend.onrender.com` (use your actual backend URL from Step 2)
    - Add: `GEMINI_API_KEY` = `<your-gemini-api-key>`
+     - 📝 **Don't have a key?** See [HOW_TO_GET_GEMINI_API_KEY.md](./HOW_TO_GET_GEMINI_API_KEY.md) for instructions
+     - Or visit: https://aistudio.google.com/app/apikey
 5. Click **"Create Static Site"**
 6. Wait for deployment (first build may take 5-10 minutes)
 7. Your frontend will be available at `https://restaurant-frontend.onrender.com`
