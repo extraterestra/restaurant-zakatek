@@ -64,12 +64,18 @@ Render is ideal for deploying both frontend and backend together with a PostgreS
    - **Publish Directory**: `dist`
 4. Scroll down to **"Environment Variables"** section and click **"Add Environment Variable"**:
    - Add: `VITE_API_URL` = `https://restaurant-backend.onrender.com` (use your actual backend URL from Step 2)
+     - ⚠️ **Important:** No trailing slash, just the base URL
    - Add: `GEMINI_API_KEY` = `<your-gemini-api-key>`
      - 📝 **Don't have a key?** See [HOW_TO_GET_GEMINI_API_KEY.md](./HOW_TO_GET_GEMINI_API_KEY.md) for instructions
      - Or visit: https://aistudio.google.com/app/apikey
 5. Click **"Create Static Site"**
 6. Wait for deployment (first build may take 5-10 minutes)
 7. Your frontend will be available at `https://restaurant-frontend.onrender.com`
+
+**Important Notes:**
+- The `public/_redirects` file is included to handle client-side routing (like `/admin`)
+- After deployment, test: `https://your-frontend-url.onrender.com/admin`
+- If `/admin` shows "Not Found", the `_redirects` file may not have been copied - check the build logs
 
 ### Step 4: Update Backend CORS (if needed)
 
@@ -142,19 +148,29 @@ NODE_ENV=production
 
 ## 🐛 Troubleshooting
 
-### CORS Errors
-- Ensure backend CORS includes your frontend URL
-- Check that `VITE_API_URL` is set correctly
+See [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) for detailed troubleshooting guide.
 
-### Database Connection Issues
+### Common Issues
+
+**Order Submission Fails:**
+- Check `VITE_API_URL` is set correctly in frontend environment variables
+- Verify backend is running and accessible
+- Check browser console for CORS errors
+- Ensure `FRONTEND_URL` is set in backend environment variables
+
+**`/admin` Route Shows "Not Found":**
+- The `public/_redirects` file should handle this automatically
+- If still not working, check build logs to ensure `_redirects` was copied to `dist/`
+- Clear browser cache and try again
+
+**CORS Errors:**
+- Ensure backend `FRONTEND_URL` includes your frontend URL
+- Check that `VITE_API_URL` is set correctly (no trailing slash)
+
+**Database Connection Issues:**
 - Verify `DATABASE_URL` is correct
 - For Render, use the **Internal Database URL** (not external)
 - Check database is running
-
-### Build Failures
-- Check Node.js version (should be 18+)
-- Verify all dependencies are in `package.json`
-- Check build logs for specific errors
 
 ### API Not Found
 - Verify backend URL in `VITE_API_URL`
