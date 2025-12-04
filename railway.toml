@@ -1,0 +1,25 @@
+# Railway Configuration
+# This file is optional but helps Railway understand your project structure
+
+# Backend Service
+[[services]]
+name = "backend"
+source = "server"
+buildCommand = "npm install && npm run build"
+startCommand = "node dist/index.js"
+healthcheckPath = "/api/orders"
+healthcheckTimeout = 100
+
+[services.env]
+PORT = "5001"
+NODE_ENV = "production"
+
+# Frontend Service
+[[services]]
+name = "frontend"
+source = "."
+buildCommand = "npm install && npm run build"
+startCommand = "npm run preview"
+
+[services.env]
+VITE_API_URL = "${BACKEND_URL}"

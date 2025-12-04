@@ -34,22 +34,27 @@ Add it to your `.env.local` file:
 GEMINI_API_KEY=AIzaSyAbCdEfGhIjKlMnOpQrStUvWxYz1234567
 ```
 
-#### For Render Deployment:
-1. Go to your Render dashboard
-2. Open your **restaurant-frontend** service
-3. Go to **"Environment"** tab
-4. Click **"Add Environment Variable"**
-5. Key: `GEMINI_API_KEY`
-6. Value: Paste your API key
-7. Click **"Save Changes"**
+#### For Railway Deployment:
+1. Go to your Railway dashboard
+2. Select your frontend service
+3. Go to "Variables" tab
+4. Click "New Variable"
+5. Add:
+   - **Variable**: `GEMINI_API_KEY`
+   - **Value**: `AIza...` (your actual key)
+6. Railway will automatically redeploy
 
-## Alternative: If You Already Have a Key
+## Troubleshooting
 
-If you've used Google AI Studio before:
-1. Go to [Google AI Studio](https://aistudio.google.com/)
-2. Click on your profile/account icon
-3. Look for **"API Keys"** or **"Get API Key"** in the menu
-4. You can view existing keys or create a new one
+### API Key Not Working
+
+1. **Check the key is valid:**
+   - Go to [Google AI Studio](https://makersuite.google.com/app/apikey)
+   - Make sure the key is enabled and not expired
+
+2. **Check environment variable:**
+   - Verify the key is set correctly in Railway environment variables
+   - Make sure there are no extra spaces or quotes
 
 ## Free Tier & Limits
 
@@ -73,7 +78,7 @@ If you've used Google AI Studio before:
 ### "API Key not found" error:
 - Make sure you copied the entire key (they're long!)
 - Check for extra spaces before/after the key
-- Verify the key is set correctly in Render environment variables
+- Verify the key is set correctly in Railway environment variables
 
 ### "Quota exceeded" error:
 - You've hit the free tier limits
