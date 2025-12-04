@@ -16,7 +16,33 @@ A modern restaurant order management system with AI-powered recommendations, rea
 - 💾 **PostgreSQL Database** - Persistent order storage
 - 🎨 **Modern UI** - Responsive design with Tailwind CSS
 
-## Run Locally
+## 🐳 Quick Start with Docker (Recommended)
+
+The easiest way to run this project locally is using Docker:
+
+```bash
+# 1. Clone the repository
+git clone <your-repo-url>
+cd restaurant
+
+# 2. Create environment file
+cp .env.example .env
+# Edit .env and add your GEMINI_API_KEY
+
+# 3. Start all services (frontend, backend, database)
+docker-compose up -d
+
+# 4. Access the application
+# Frontend: http://localhost:3000
+# Admin Panel: http://localhost:3000/admin
+# Backend API: http://localhost:5001
+```
+
+**That's it!** 🎉 No need to install Node.js, PostgreSQL, or manage dependencies.
+
+📖 **For detailed Docker setup**, see [DOCKER_SETUP.md](./DOCKER_SETUP.md)
+
+## Run Locally (Without Docker)
 
 ### Prerequisites
 - Node.js 18+ 
@@ -69,16 +95,29 @@ A modern restaurant order management system with AI-powered recommendations, rea
 
 ## 🚀 Deployment
 
-See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment instructions to:
-- **Render** (Full-stack deployment with PostgreSQL)
-- **Vercel** (Frontend) + **Render** (Backend)
+### Railway (Recommended)
 
-Quick deployment steps:
-1. Deploy PostgreSQL database on Render
-2. Deploy backend server on Render
-3. Deploy frontend on Vercel or Render
-4. Set environment variables
-5. Test the application
+Deploy to Railway with managed PostgreSQL and automatic HTTPS:
+
+📖 **Step-by-step guide**: [RAILWAY_DEPLOYMENT.md](./RAILWAY_DEPLOYMENT.md)
+
+**Quick steps:**
+1. Push your code to GitHub
+2. Create a new project on [Railway](https://railway.app)
+3. Add PostgreSQL database
+4. Deploy backend and frontend services
+5. Set environment variables
+6. Done! ✅
+
+### Docker Deployment (Alternative)
+
+Deploy using Docker to any cloud provider:
+- **DigitalOcean App Platform**
+- **AWS ECS / Fargate**
+- **Google Cloud Run**
+- **Azure Container Instances**
+
+📖 **Docker setup guide**: [DOCKER_SETUP.md](./DOCKER_SETUP.md)
 
 ## Project Structure
 
