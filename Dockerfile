@@ -12,9 +12,16 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 
-# Accept build argument for API URL
-ARG VITE_API_URL
+# Accept build argument for API URL with default fallback
+ARG VITE_API_URL=http://localhost:5001
+ARG GEMINI_API_KEY=""
+
+# Set as environment variables for Vite build
 ENV VITE_API_URL=$VITE_API_URL
+ENV GEMINI_API_KEY=$GEMINI_API_KEY
+
+# Debug: Print the API URL being used
+RUN echo "Building with VITE_API_URL: $VITE_API_URL"
 
 # Copy source code
 COPY . .
