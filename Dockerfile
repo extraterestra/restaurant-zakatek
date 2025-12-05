@@ -12,19 +12,22 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 
-# Accept build argument for API URL with default fallback
-ARG VITE_API_URL=http://localhost:5001
-ARG GEMINI_API_KEY=""
-
-# Set as environment variables for Vite build
-ENV VITE_API_URL=$VITE_API_URL
-ENV GEMINI_API_KEY=$GEMINI_API_KEY
-
-# Debug: Print the API URL being used
-RUN echo "Building with VITE_API_URL: $VITE_API_URL"
+# Accept NODE_ENV to determine which .env file to use
+ARG NODE_ENV=production
 
 # Copy source code
 COPY . .
+
+# Copy the appropriate .env file based on NODE_ENV
+# For staging/test: use .env.staging
+# For production: use .env.production
+RUN if [ "$NODE_ENV" = "staging" ]; then \
+    cp .env.staging .env.production.local; \
+    fi
+
+# Debug: Show which API URL will be used
+RUN if [ -f .env.production ]; then cat .env.production; fi
+RUN if [ -f .env.production.local ]; then cat .env.production.local; fi
 
 # Build the application
 RUN npm run build
