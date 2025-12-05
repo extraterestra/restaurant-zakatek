@@ -154,3 +154,4 @@ restaurant/
 - **Backend**: Node.js, Express, TypeScript
 - **Database**: PostgreSQL
 - **AI**: Google Gemini API
+# Trigger rebuild
