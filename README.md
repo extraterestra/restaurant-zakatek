@@ -104,6 +104,16 @@ docker-compose up -d
 - **Database**: PostgreSQL (Railway managed)
 - **Branch**: `main` (auto-deploys on push)
 
+### 🧪 Test/Staging Environment (Railway)
+
+**Test Application:**
+- **Frontend**: https://frontend-test-staging.up.railway.app
+- **Backend API**: https://backend-test-staging.up.railway.app/api/orders
+- **Admin Panel**: https://frontend-test-staging.up.railway.app/admin
+- **Database**: PostgreSQL Test (Railway managed)
+- **Branch**: `develop` (auto-deploys on push)
+
+
 ### 💻 Local Development
 
 **Using Docker (Recommended):**
