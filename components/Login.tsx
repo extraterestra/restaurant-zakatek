@@ -24,6 +24,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
         setLoading(true);
 
         console.log('Attempting login with:', { username, passwordLength: password.length });
+        console.log('API_BASE_URL:', API_BASE_URL);
 
         try {
             const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
@@ -35,13 +36,36 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
                 body: JSON.stringify({ username, password }),
             });
 
+            console.log('Login response status:', response.status);
+            console.log('Login response ok:', response.ok);
+
             if (!response.ok) {
-                const data = await response.json();
+                const data = await response.json().catch(() => ({ error: 'Login failed' }));
+                console.error('Login failed:', data);
                 throw new Error(data.error || 'Login failed');
             }
 
-            onLoginSuccess();
+            const data = await response.json();
+            console.log('Login successful, user data:', data);
+
+            // Wait a moment for the session cookie to be set
+            await new Promise(resolve => setTimeout(resolve, 200));
+
+            // Verify session before calling onLoginSuccess
+            const sessionResponse = await fetch(`${API_BASE_URL}/api/auth/session`, {
+                credentials: 'include',
+            });
+            const sessionData = await sessionResponse.json();
+            console.log('Session check after login:', sessionData);
+
+            if (sessionData.isAuthenticated) {
+                onLoginSuccess();
+            } else {
+                console.error('Session not established after login');
+                throw new Error('Session not established. Please try again.');
+            }
         } catch (err: any) {
+            console.error('Login error:', err);
             setError(err.message || 'Failed to login');
         } finally {
             setLoading(false);

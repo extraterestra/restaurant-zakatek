@@ -93,6 +93,26 @@ docker-compose up -d
    ```
    Backend will be available at `http://localhost:5001`
 
+## 🔐 Admin Panel Access
+
+- **Local**:
+  - **URL**: `http://localhost:3000/admin`
+  - **Default credentials**: `admin / admin0617`
+  - The frontend talks to the backend via `VITE_API_URL` (default `http://localhost:5001`), and the backend uses cookie-based sessions.
+- **Test/Staging**:
+  - **URL**: `https://frontend-test-staging.up.railway.app/admin`
+  - **Backend URL (`VITE_API_URL`)**: e.g. `https://backend-test-staging.up.railway.app`
+  - **CORS/Sessions**:
+    - On the backend service set **`FRONTEND_URL`** to `https://frontend-test-staging.up.railway.app` (or `*` while testing).
+    - Ensure **`NODE_ENV=production`** so cookies are sent with `secure: true` and `sameSite: 'none'` for cross-origin HTTPS.
+  - Uses the same default credentials: `admin / admin0617` (unless you change them in the database).
+- **Production**:
+  - **URL**: `https://frontend-production-64e1.up.railway.app/admin`
+  - Make sure:
+    - Frontend `VITE_API_URL` points to the production backend.
+    - Backend `FRONTEND_URL` is set to the production frontend URL.
+    - `SESSION_SECRET` is set on the backend for secure sessions.
+
 ## 🚀 Deployment
 
 ### 🌐 Production (Railway)
