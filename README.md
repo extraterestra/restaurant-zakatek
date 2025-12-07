@@ -93,6 +93,7 @@ docker-compose up -d
    ```
    Backend will be available at `http://localhost:5001`
 
+
 ## 🔐 Admin Panel Access
 
 - **Local**:
@@ -107,7 +108,7 @@ docker-compose up -d
     - Ensure **`NODE_ENV=production`** so cookies are sent with `secure: true` and `sameSite: 'none'` for cross-origin HTTPS.
   - Uses the same default credentials: `admin / admin0617` (unless you change them in the database).
 - **Production**:
-  - **URL**: `https://frontend-production-64e1.up.railway.app/admin`
+  - **URL**: `https://frontend-prod-production-8320.up.railway.app/admin`
   - Make sure:
     - Frontend `VITE_API_URL` points to the production backend.
     - Backend `FRONTEND_URL` is set to the production frontend URL.
@@ -118,9 +119,9 @@ docker-compose up -d
 ### 🌐 Production (Railway)
 
 **Live Application:**
-- **Frontend**: https://frontend-production-64e1.up.railway.app
-- **Backend API**: https://backend-production-40df.up.railway.app/api/orders
-- **Admin Panel**: https://frontend-production-64e1.up.railway.app/admin
+- **Frontend**: https://frontend-prod-production-8320.up.railway.app
+- **Backend API**: https://frontend-prod-production-8320.up.railway.app/api/orders
+- **Admin Panel**: https://frontend-prod-production-8320.up.railway.app/admin
 - **Database**: PostgreSQL (Railway managed)
 - **Branch**: `main` (auto-deploys on push)
 
