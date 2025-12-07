@@ -43,16 +43,18 @@ app.use(express.json());
 app.set('trust proxy', 1);
 
 // Session configuration
-const isProduction = process.env.NODE_ENV === 'production';
+// Treat both "production" and "staging" as secure environments (Railway)
+const env = process.env.NODE_ENV || 'development';
+const isSecureEnv = env === 'production' || env === 'staging';
 app.use(session({
   secret: process.env.SESSION_SECRET || 'restaurant-secret-key-change-in-production',
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: isProduction, // true for HTTPS in production
+    secure: isSecureEnv, // true for HTTPS in production/staging on Railway
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    sameSite: isProduction ? 'none' : 'lax' // 'none' required for cross-origin cookies in production
+    sameSite: isSecureEnv ? 'none' : 'lax' // 'none' required for cookies across different subdomains
   }
 }));
 
