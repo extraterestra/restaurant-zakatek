@@ -20,9 +20,16 @@ app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
+    
+    // Log CORS check for debugging
+    console.log('CORS check for origin:', origin);
+    console.log('Allowed origins:', allowedOrigins);
+    console.log('FRONTEND_URL env:', process.env.FRONTEND_URL);
+    
     if (allowedOrigins.includes(origin) || process.env.FRONTEND_URL === '*') {
       callback(null, true);
     } else {
+      console.log('CORS blocked origin:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -31,14 +38,16 @@ app.use(cors({
 app.use(express.json());
 
 // Session configuration
+const isProduction = process.env.NODE_ENV === 'production';
 app.use(session({
   secret: process.env.SESSION_SECRET || 'restaurant-secret-key-change-in-production',
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: isProduction, // true for HTTPS in production
     httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    sameSite: isProduction ? 'none' : 'lax' // 'none' required for cross-origin cookies in production
   }
 }));
 
@@ -85,6 +94,8 @@ app.post('/api/auth/login', async (req, res) => {
   try {
     const { username, password } = req.body;
     console.log('Login attempt for:', username);
+    console.log('Request origin:', req.get('origin'));
+    console.log('Request headers:', JSON.stringify(req.headers, null, 2));
 
     if (!username || !password) {
       console.log('Missing credentials');
@@ -116,11 +127,25 @@ app.post('/api/auth/login', async (req, res) => {
     req.session.role = user.role;
 
     console.log('Login successful for:', username);
+    console.log('Session ID:', req.sessionID);
+    console.log('Session data:', {
+      userId: req.session.userId,
+      username: req.session.username,
+      role: req.session.role
+    });
 
-    res.json({
-      id: user.id,
-      username: user.username,
-      role: user.role
+    // Save session before sending response
+    req.session.save((err) => {
+      if (err) {
+        console.error('Error saving session:', err);
+        return res.status(500).json({ error: 'Failed to save session' });
+      }
+      
+      res.json({
+        id: user.id,
+        username: user.username,
+        role: user.role
+      });
     });
   } catch (error) {
     console.error('Error logging in:', error);
