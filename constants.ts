@@ -44,7 +44,7 @@ export const MENU_ITEMS: Product[] = [
     calories: 450,
     description: 'Chrupiąca rolka w tempurze z łososiem i ogórkiem, idealne połączenie tekstur.',
     ingredients: ['Łosoś', 'Ogórek', 'Tempura', 'Panko', 'Ryż', 'Nori'],
-    image: 'https://i.imgur.com/wXYnemu.jpg',
+    image: 'https://i.imgur.com/jo4w03o.jpeg',
     isSpicy: false
   },
   {
@@ -92,7 +92,7 @@ export const MENU_ITEMS: Product[] = [
     calories: 420,
     description: 'Lekka wersja klasyka. Grillowane kawałki kurczaka z dużą ilością warzyw w pełnoziarnistej tortilli.',
     ingredients: ['Kurczak Grillowany', 'Kapusta Pekińska', 'Ogórek', 'Pomidor', 'Sos Jogurtowy', 'Tortilla Pełnoziarnista'],
-    image: 'https://images.unsplash.com/photo-1529006557810-274bc021f99c?q=80&w=800&auto=format&fit=crop',
+    image: 'https://i.imgur.com/uAdZoHz.jpeg',
     isSpicy: false
   },
 
@@ -103,9 +103,9 @@ export const MENU_ITEMS: Product[] = [
     category: Category.SALADS,
     price: 25.00,
     calories: 180,
-    description: 'Eksplozja witamin. Mieszanka chrupiących sałat i sezonowych warzyw z lekkim winegretem.',
-    ingredients: ['Mix Sałat', 'Pomidorki Cherry', 'Ogórek', 'Papryka', 'Rzodkiewka', 'Sos Winegret'],
-    image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=800&auto=format&fit=crop',
+    description: 'Eksplozja witamin. Mieszanka chrupiących sałat i sezonowych warzyw.',
+    ingredients: ['Mix Sałat', 'Pomidorki Cherry', 'Ogórek', 'Papryka', 'Olej Oliwkowy'],
+    image: 'https://i.imgur.com/x6QzvGw.jpeg',
     isVegetarian: true,
     isSpicy: false
   },
@@ -117,7 +117,7 @@ export const MENU_ITEMS: Product[] = [
     calories: 350,
     description: 'Klasyka gatunku. Grillowany kurczak, chrupiące grzanki, parmezan i oryginalny sos Cezar.',
     ingredients: ['Sałata Rzymska', 'Kurczak Grillowany', 'Grzanki', 'Parmezan', 'Sos Cezar'],
-    image: 'https://images.unsplash.com/photo-1551248429-40975aa4de74?q=80&w=800&auto=format&fit=crop',
+    image: 'https://i.imgur.com/vSvEnnC.jpeg',
     isSpicy: false
   },
   {
@@ -128,7 +128,7 @@ export const MENU_ITEMS: Product[] = [
     calories: 220,
     description: 'Orzeźwiająca kompozycja z grejpfrutem, pomarańczą, awokado i prażonymi pestkami słonecznika.',
     ingredients: ['Szpinak', 'Grejpfrut', 'Pomarańcza', 'Awokado', 'Słonecznik', 'Dressing Miodowo-Cytrynowy'],
-    image: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?q=80&w=800&auto=format&fit=crop',
+    image: 'https://i.imgur.com/6iyIoju.jpeg',
     isVegetarian: true,
     isSpicy: false
   }

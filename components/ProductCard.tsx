@@ -13,7 +13,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
   const handleAddToCart = () => {
     onAddToCart(product);
     setIsAdded(true);
-    
+
     // Reset state after 1.5 seconds
     setTimeout(() => {
       setIsAdded(false);
@@ -30,16 +30,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
         />
         <div className="absolute top-3 left-3 flex gap-2">
-            {product.isSpicy && (
-                <span className="bg-red-500/90 backdrop-blur text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">
-                    Ostre
-                </span>
-            )}
-            {product.isVegetarian && (
-                <span className="bg-lime-500/90 backdrop-blur text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">
-                    Wege
-                </span>
-            )}
+          {product.isSpicy && (
+            <span className="bg-red-500/90 backdrop-blur text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">
+              Ostre
+            </span>
+          )}
+          {product.isVegetarian && (
+            <span className="bg-lime-500/90 backdrop-blur text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">
+              Wege
+            </span>
+          )}
         </div>
       </div>
 
@@ -53,30 +53,29 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
             {(product.price || 0).toFixed(2)} zł
           </span>
         </div>
-        
+
         <p className="text-gray-500 text-sm mb-4 line-clamp-2 flex-1">
           {product.description}
         </p>
 
         <div className="flex items-center justify-between text-xs text-gray-400 mb-4">
-            <div className="flex items-center gap-1">
-                <i className="fas fa-fire-alt text-orange-500"></i>
-                {product.calories} kcal
-            </div>
-            <div className="flex items-center gap-1">
-                <i className="fas fa-utensils text-gray-300"></i>
-                {product.category}
-            </div>
+          <div className="flex items-center gap-1">
+            <i className="fas fa-fire-alt text-orange-500"></i>
+            {product.calories} kcal
+          </div>
+          <div className="flex items-center gap-1">
+            <i className="fas fa-utensils text-gray-300"></i>
+            {product.category}
+          </div>
         </div>
 
         <button
           onClick={handleAddToCart}
           disabled={isAdded}
-          className={`w-full py-3 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 ${
-            isAdded 
-              ? 'bg-lime-500 text-white scale-95 shadow-inner cursor-default'
-              : 'bg-gray-900 text-white hover:bg-emerald-600 active:bg-emerald-700 hover:shadow-lg'
-          }`}
+          className={`w-full py-3 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 ${isAdded
+            ? 'bg-lime-500 text-white scale-95 shadow-inner cursor-default'
+            : 'bg-gray-900 text-white hover:bg-emerald-600 active:bg-emerald-700 hover:shadow-lg'
+            }`}
         >
           {isAdded ? (
             <>
