@@ -54,7 +54,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
           </span>
         </div>
 
-        <p className="text-gray-500 text-sm mb-4 line-clamp-2 flex-1">
+        <p className="text-gray-500 text-sm mb-4 flex-1">
           {product.description}
         </p>
 
