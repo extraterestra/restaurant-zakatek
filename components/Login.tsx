@@ -59,7 +59,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
             console.log('Session check after login:', sessionData);
 
             if (sessionData.isAuthenticated) {
-                onLoginSuccess();
+            onLoginSuccess();
             } else {
                 console.error('Session not established after login');
                 throw new Error('Session not established. Please try again.');

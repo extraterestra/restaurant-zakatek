@@ -372,6 +372,151 @@ app.patch('/api/orders/:id/status', requireWriteAccess, async (req, res) => {
   }
 });
 
+// ============ Menu Items (Food Configuration) ============
+
+// Public: get enabled menu items for the main menu
+app.get('/api/menu-items', async (_req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT id, name, description, image_url, calories, category, price, is_enabled
+       FROM menu_items
+       WHERE is_enabled = TRUE
+       ORDER BY category, name`
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching menu items:', error);
+    res.status(500).json({ error: 'Failed to fetch menu items' });
+  }
+});
+
+// Admin: get all menu items (including disabled)
+app.get('/api/admin/menu-items', requireAdmin, async (_req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT id, name, description, image_url, calories, category, price, is_enabled,
+              created_at, updated_at
+       FROM menu_items
+       ORDER BY created_at DESC`
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching admin menu items:', error);
+    res.status(500).json({ error: 'Failed to fetch menu items' });
+  }
+});
+
+// Admin: create menu item
+app.post('/api/admin/menu-items', requireAdmin, async (req, res) => {
+  try {
+    const { name, description, imageUrl, calories, category, price, isEnabled } = req.body;
+
+    if (!name || !description || !imageUrl || !category || price == null) {
+      return res.status(400).json({ error: 'Name, description, imageUrl, category and price are required' });
+    }
+
+    const result = await pool.query(
+      `INSERT INTO menu_items
+        (name, description, image_url, calories, category, price, is_enabled)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING id, name, description, image_url, calories, category, price, is_enabled, created_at, updated_at`,
+      [name, description, imageUrl, calories ?? null, category, price, isEnabled ?? true]
+    );
+
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error('Error creating menu item:', error);
+    res.status(500).json({ error: 'Failed to create menu item' });
+  }
+});
+
+// Admin: update menu item
+app.patch('/api/admin/menu-items/:id', requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, description, imageUrl, calories, category, price, isEnabled } = req.body;
+
+    const fields: string[] = [];
+    const values: any[] = [];
+    let idx = 1;
+
+    if (name !== undefined) {
+      fields.push(`name = $${idx++}`);
+      values.push(name);
+    }
+    if (description !== undefined) {
+      fields.push(`description = $${idx++}`);
+      values.push(description);
+    }
+    if (imageUrl !== undefined) {
+      fields.push(`image_url = $${idx++}`);
+      values.push(imageUrl);
+    }
+    if (calories !== undefined) {
+      fields.push(`calories = $${idx++}`);
+      values.push(calories);
+    }
+    if (category !== undefined) {
+      fields.push(`category = $${idx++}`);
+      values.push(category);
+    }
+    if (price !== undefined) {
+      fields.push(`price = $${idx++}`);
+      values.push(price);
+    }
+    if (isEnabled !== undefined) {
+      fields.push(`is_enabled = $${idx++}`);
+      values.push(isEnabled);
+    }
+
+    if (fields.length === 0) {
+      return res.status(400).json({ error: 'No fields to update' });
+    }
+
+    // Always update updated_at
+    fields.push(`updated_at = CURRENT_TIMESTAMP`);
+
+    const query = `
+      UPDATE menu_items
+      SET ${fields.join(', ')}
+      WHERE id = $${idx}
+      RETURNING id, name, description, image_url, calories, category, price, is_enabled, created_at, updated_at
+    `;
+    values.push(id);
+
+    const result = await pool.query(query, values);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Menu item not found' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error updating menu item:', error);
+    res.status(500).json({ error: 'Failed to update menu item' });
+  }
+});
+
+// Admin: delete menu item
+app.delete('/api/admin/menu-items/:id', requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query(
+      'DELETE FROM menu_items WHERE id = $1 RETURNING id',
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Menu item not found' });
+    }
+
+    res.json({ message: 'Menu item deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting menu item:', error);
+    res.status(500).json({ error: 'Failed to delete menu item' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
