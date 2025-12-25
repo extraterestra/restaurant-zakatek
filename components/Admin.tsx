@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AuthSession } from '../types';
+import { AdminLayout } from './AdminLayout';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
@@ -149,12 +150,14 @@ export const Admin: React.FC = () => {
 
   if (loading && orders.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <i className="fas fa-circle-notch fa-spin text-4xl text-emerald-500 mb-4"></i>
-          <p className="text-gray-600">Ładowanie zamówień...</p>
+      <AdminLayout active="orders">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <i className="fas fa-circle-notch fa-spin text-4xl text-emerald-500 mb-4"></i>
+            <p className="text-gray-600">Ładowanie zamówień...</p>
+          </div>
         </div>
-      </div>
+      </AdminLayout>
     );
   }
 
@@ -180,7 +183,7 @@ export const Admin: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <AdminLayout active="orders">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="px-6 py-4 bg-gray-900 text-white flex justify-between items-center">
@@ -196,15 +199,6 @@ export const Admin: React.FC = () => {
               </p>
             </div>
             <div className="flex gap-3">
-              {session?.user?.role === 'admin' && (
-                <a
-                  href="/admin/users"
-                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
-                >
-                  <i className="fas fa-users mr-2"></i>
-                  User Management
-                </a>
-              )}
               <button
                 onClick={fetchOrders}
                 className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
@@ -325,7 +319,7 @@ export const Admin: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
+    </AdminLayout>
   );
 };
 

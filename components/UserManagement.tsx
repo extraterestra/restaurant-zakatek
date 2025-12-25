@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User, AuthSession } from '../types';
+import { AdminLayout } from './AdminLayout';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
@@ -180,17 +181,19 @@ export const UserManagement: React.FC = () => {
 
     if (loading && users.length === 0) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="text-center">
-                    <i className="fas fa-circle-notch fa-spin text-4xl text-emerald-500 mb-4"></i>
-                    <p className="text-gray-600">Loading users...</p>
+            <AdminLayout active="users">
+                <div className="flex-1 flex items-center justify-center">
+                    <div className="text-center">
+                        <i className="fas fa-circle-notch fa-spin text-4xl text-emerald-500 mb-4"></i>
+                        <p className="text-gray-600">Loading users...</p>
+                    </div>
                 </div>
-            </div>
+            </AdminLayout>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <AdminLayout active="users">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     {/* Header */}
@@ -207,13 +210,6 @@ export const UserManagement: React.FC = () => {
                             </p>
                         </div>
                         <div className="flex gap-3">
-                            <a
-                                href="/admin"
-                                className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
-                            >
-                                <i className="fas fa-arrow-left mr-2"></i>
-                                Back to Orders
-                            </a>
                             <button
                                 onClick={() => {
                                     setShowCreateModal(true);
@@ -430,6 +426,6 @@ export const UserManagement: React.FC = () => {
                     </div>
                 </div>
             )}
-        </div>
+        </AdminLayout>
     );
 };
