@@ -155,6 +155,51 @@ export const initDb = async () => {
       console.log('Seeded initial menu items');
     }
 
+    // Create integrations table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS integrations (
+        id SERIAL PRIMARY KEY,
+        platform_name VARCHAR(255) NOT NULL,
+        platform_url TEXT NOT NULL,
+        api_key TEXT NOT NULL,
+        restaurant_external_id VARCHAR(255),
+        restaurant_address TEXT,
+        restaurant_phone VARCHAR(50),
+        currency VARCHAR(10) DEFAULT 'PLN',
+        last_sync_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('Integrations table initialized successfully');
+
+    // Ensure columns exist if table was already created
+    await pool.query(`
+      ALTER TABLE integrations ADD COLUMN IF NOT EXISTS restaurant_external_id VARCHAR(255);
+      ALTER TABLE integrations ADD COLUMN IF NOT EXISTS restaurant_address TEXT;
+      ALTER TABLE integrations ADD COLUMN IF NOT EXISTS restaurant_phone VARCHAR(50);
+      ALTER TABLE integrations ADD COLUMN IF NOT EXISTS currency VARCHAR(10) DEFAULT 'PLN';
+    `);
+    console.log('Integrations table columns verified');
+
+    // Seed default integration if none exist
+    const integrationCount = await pool.query('SELECT COUNT(*) FROM integrations');
+    if (parseInt(integrationCount.rows[0].count) === 0) {
+      await pool.query(
+        'INSERT INTO integrations (platform_name, platform_url, api_key, restaurant_external_id, restaurant_address, restaurant_phone, currency) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+        [
+          'External Food Platform', 
+          'http://host.docker.internal:3001/api/external-menu', 
+          'da079e38fcb44b6d86ad08ac3ee33a42',
+          'partner-123',
+          '1234 Main Street, Fez, Morroko',
+          '+33 30 1234562',
+          'PLN'
+        ]
+      );
+      console.log('Default integration settings created');
+    }
+
     // Seed default admin user if no users exist
     const userCount = await pool.query('SELECT COUNT(*) FROM users');
     if (parseInt(userCount.rows[0].count) === 0) {

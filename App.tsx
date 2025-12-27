@@ -11,6 +11,7 @@ import { Admin } from './components/Admin';
 import { Login } from './components/Login';
 import { UserManagement } from './components/UserManagement';
 import { FoodConfiguration } from './components/FoodConfiguration';
+import { Integration } from './components/Integration';
 import { MENU_ITEMS } from './constants';
 import { CartItem, Product, Category, AuthSession } from './types';
 
@@ -36,7 +37,7 @@ function App() {
   };
 
   const isAdminRoute = (path: string) => {
-    return path === '/admin' || path === '/admin/users' || path === '/admin/food';
+    return path === '/admin' || path === '/admin/users' || path === '/admin/food' || path === '/admin/integration';
   };
 
   const [currentPath, setCurrentPath] = useState(getPath());
@@ -208,6 +209,48 @@ function App() {
     }
 
     return <FoodConfiguration />;
+  }
+
+  // Handle integration route (admin only)
+  if (currentPath === '/admin/integration' || window.location.pathname === '/admin/integration') {
+    // Show loading while checking auth
+    if (authLoading) {
+      return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <i className="fas fa-circle-notch fa-spin text-4xl text-emerald-500 mb-4"></i>
+            <p className="text-gray-600">Loading...</p>
+          </div>
+        </div>
+      );
+    }
+
+    // Redirect to login if not authenticated
+    if (!authSession?.isAuthenticated) {
+      window.location.href = '/admin';
+      return null;
+    }
+
+    // Only admins can manage integration
+    if (authSession.user?.role !== 'admin') {
+      return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <i className="fas fa-exclamation-triangle text-5xl text-red-500 mb-4"></i>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
+            <p className="text-gray-600 mb-6">Only admins can manage integration.</p>
+            <a
+              href="/admin"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors inline-block"
+            >
+              Back to Admin Dashboard
+            </a>
+          </div>
+        </div>
+      );
+    }
+
+    return <Integration />;
   }
 
   const [activeCategory, setActiveCategory] = useState<string>(Category.ALL);

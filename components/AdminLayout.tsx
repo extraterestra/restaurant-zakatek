@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface AdminLayoutProps {
-  active: 'orders' | 'users' | 'food';
+  active: 'orders' | 'users' | 'food' | 'integration';
   children: React.ReactNode;
 }
 
@@ -49,6 +49,13 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ active, children }) =>
           >
             <i className="fas fa-hamburger w-4"></i>
             <span>Food Configuration</span>
+          </a>
+          <a
+            href="/admin/integration"
+            className={navItemClasses(active === 'integration')}
+          >
+            <i className="fas fa-network-wired w-4"></i>
+            <span>Integration</span>
           </a>
         </nav>
 
