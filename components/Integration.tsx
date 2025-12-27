@@ -37,14 +37,17 @@ export const Integration: React.FC = () => {
       });
       if (res.ok) {
         const data = await res.json();
-        if (data.platform_url) {
+        // Check if we actually got a record from the database
+        if (data && Object.keys(data).length > 0) {
           setSettings({
-            ...data,
+            platform_name: data.platform_name || 'External Food Platform',
+            platform_url: data.platform_url || '',
             api_key: data.api_key || '',
             restaurant_external_id: data.restaurant_external_id || '',
             restaurant_address: data.restaurant_address || '',
             restaurant_phone: data.restaurant_phone || '',
             currency: data.currency || 'PLN',
+            last_sync_at: data.last_sync_at || null,
           });
         }
       }
