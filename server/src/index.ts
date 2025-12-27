@@ -560,9 +560,9 @@ app.patch('/api/admin/integration', requireAdmin, async (req, res) => {
 // Sync/Export menu to external platform
 app.post('/api/admin/integration/sync', requireAdmin, async (_req, res) => {
   try {
-    // 1. Get enabled menu items
+    // 1. Get all menu items (both enabled and disabled)
     const menuResult = await pool.query(
-      'SELECT id, name, description, image_url, calories, category, price FROM menu_items WHERE is_enabled = TRUE'
+      'SELECT id, name, description, image_url, calories, category, price, is_enabled FROM menu_items'
     );
     const menuData = menuResult.rows;
 
@@ -593,7 +593,8 @@ app.post('/api/admin/integration/sync', requireAdmin, async (_req, res) => {
         currency: config.currency,
         picture: item.image_url,
         category: item.category,
-        calories: parseInt(item.calories) || 0
+        calories: parseInt(item.calories) || 0,
+        isEnabled: item.is_enabled // Added field based on updated API schema
       }))
     };
 

@@ -277,8 +277,8 @@ export const Integration: React.FC = () => {
 
                 <div className="space-y-4">
                   <p className="text-xs text-gray-500 leading-relaxed">
-                    Clicking the button below will export all currently <strong>enabled</strong> dishes
-                    to the external platform. This includes names, prices, descriptions, and images.
+                    Clicking the button below will export <strong>all</strong> dishes
+                    to the external platform. Items will include their status (Enabled/Disabled).
                   </p>
                   
                   <button
@@ -333,7 +333,14 @@ export const Integration: React.FC = () => {
   "restaurantAddress": "${settings.restaurant_address || '...'}",
   "restaurantPhone": "${settings.restaurant_phone || '...'}",
   "currency": "${settings.currency}",
-  "items": [...]
+  "items": [
+    {
+      "id": "item-1",
+      "name": "...",
+      "isEnabled": true,
+      ...
+    }
+  ]
 }`}
                 </pre>
               </div>
