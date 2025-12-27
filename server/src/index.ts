@@ -517,6 +517,113 @@ app.delete('/api/admin/menu-items/:id', requireAdmin, async (req, res) => {
   }
 });
 
+// ============ Integration Endpoints (Admin only) ============
+
+// Get integration settings
+app.get('/api/admin/integration', requireAdmin, async (_req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM integrations LIMIT 1');
+    res.json(result.rows[0] || {});
+  } catch (error) {
+    console.error('Error fetching integration:', error);
+    res.status(500).json({ error: 'Failed to fetch integration settings' });
+  }
+});
+
+// Update integration settings
+app.patch('/api/admin/integration', requireAdmin, async (req, res) => {
+  try {
+    const { platformUrl, apiKey, restaurantExternalId, restaurantAddress, restaurantPhone, currency } = req.body;
+    
+    // For simplicity, we only manage one integration record
+    const check = await pool.query('SELECT id FROM integrations LIMIT 1');
+    
+    if (check.rows.length === 0) {
+      await pool.query(
+        'INSERT INTO integrations (platform_name, platform_url, api_key, restaurant_external_id, restaurant_address, restaurant_phone, currency) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+        ['External Platform', platformUrl, apiKey, restaurantExternalId, restaurantAddress, restaurantPhone, currency]
+      );
+    } else {
+      await pool.query(
+        'UPDATE integrations SET platform_url = $1, api_key = $2, restaurant_external_id = $3, restaurant_address = $4, restaurant_phone = $5, currency = $6, updated_at = CURRENT_TIMESTAMP WHERE id = $7',
+        [platformUrl, apiKey, restaurantExternalId, restaurantAddress, restaurantPhone, currency, check.rows[0].id]
+      );
+    }
+    
+    res.json({ message: 'Settings updated successfully' });
+  } catch (error) {
+    console.error('Error updating integration:', error);
+    res.status(500).json({ error: 'Failed to update integration settings' });
+  }
+});
+
+// Sync/Export menu to external platform
+app.post('/api/admin/integration/sync', requireAdmin, async (_req, res) => {
+  try {
+    // 1. Get all menu items (both enabled and disabled)
+    const menuResult = await pool.query(
+      'SELECT id, name, description, image_url, calories, category, price, is_enabled FROM menu_items'
+    );
+    const menuData = menuResult.rows;
+
+    // 2. Get integration settings
+    const integrationResult = await pool.query('SELECT * FROM integrations LIMIT 1');
+    if (integrationResult.rows.length === 0 || !integrationResult.rows[0].platform_url) {
+      return res.status(400).json({ error: 'Integration settings not configured' });
+    }
+    
+    const config = integrationResult.rows[0];
+
+    console.log(`[Integration] Attempting sync to: ${config.platform_url}`);
+    console.log(`[Integration] External ID: ${config.restaurant_external_id}`);
+    console.log(`[Integration] Item count: ${menuData.length}`);
+
+    // 3. Prepare data in the exact format required by the external platform
+    const exportData = {
+      restaurantExternalId: config.restaurant_external_id,
+      restaurantName: "SIVIK Restaurant",
+      restaurantAddress: config.restaurant_address,
+      restaurantPhone: config.restaurant_phone,
+      currency: config.currency,
+      items: menuData.map(item => ({
+        id: item.id.toString(),
+        name: item.name,
+        description: item.description,
+        price: parseFloat(item.price),
+        currency: config.currency,
+        picture: item.image_url,
+        category: item.category,
+        calories: parseInt(item.calories) || 0,
+        isEnabled: item.is_enabled // Added field based on updated API schema
+      }))
+    };
+
+    // 4. Send data to external platform (REST API call)
+    const response = await fetch(config.platform_url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': config.api_key
+      },
+      body: JSON.stringify(exportData)
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('External sync failed:', errorText);
+      throw new Error(`External platform responded with status ${response.status}`);
+    }
+
+    // 5. Update last sync time
+    await pool.query('UPDATE integrations SET last_sync_at = CURRENT_TIMESTAMP');
+
+    res.json({ message: `Successfully synced ${menuData.length} items to external platform.` });
+  } catch (error: any) {
+    console.error('Sync error:', error);
+    res.status(500).json({ error: `Sync failed: ${error.message}` });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
