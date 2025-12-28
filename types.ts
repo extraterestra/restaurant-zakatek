@@ -28,6 +28,8 @@ export interface User {
   id: number;
   username: string;
   role: 'admin' | 'read_only' | 'write';
+  can_manage_users: boolean;
+  can_manage_integrations: boolean;
   created_at: string;
   updated_at: string;
 }

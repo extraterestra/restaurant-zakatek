@@ -61,12 +61,47 @@ app.use(session({
 // Initialize database
 initDb().catch(console.error);
 
+// Middleware to refresh session from DB
+const refreshSession = async (req: express.Request, _res: express.Response, next: express.NextFunction) => {
+  if (req.session.userId) {
+    try {
+      const result = await pool.query(
+        'SELECT id, username, role, can_manage_users, can_manage_integrations FROM users WHERE id = $1',
+        [req.session.userId]
+      );
+      if (result.rows.length > 0) {
+        const user = result.rows[0];
+        console.log(`[Session Refresh] User: ${user.username}`);
+        
+        req.session.username = user.username;
+        req.session.role = user.role;
+        req.session.canManageUsers = user.can_manage_users;
+        req.session.canManageIntegrations = user.can_manage_integrations;
+        
+        // Ensure session is saved if modified
+        req.session.save((err) => {
+          if (err) console.error('[Session Refresh] Error saving session:', err);
+          next();
+        });
+        return; // Don't call next() yet, wait for save
+      }
+    } catch (error) {
+      console.error('[Session Refresh] Error:', error);
+    }
+  }
+  next();
+};
+
+app.use(refreshSession);
+
 // Extend session type
 declare module 'express-session' {
   interface SessionData {
     userId: number;
     username: string;
     role: string;
+    canManageUsers: boolean;
+    canManageIntegrations: boolean;
   }
 }
 
@@ -78,7 +113,29 @@ const requireAuth = (req: express.Request, res: express.Response, next: express.
   next();
 };
 
-// Admin-only middleware
+// Admin-only middleware (role 'admin' or specific permission)
+const requireUserManagement = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  if (req.session.role !== 'admin' && !req.session.canManageUsers) {
+    return res.status(403).json({ error: 'User management access required' });
+  }
+  next();
+};
+
+// Integration-only middleware (role 'admin' or specific permission)
+const requireIntegrationManagement = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  if (req.session.role !== 'admin' && !req.session.canManageIntegrations) {
+    return res.status(403).json({ error: 'Integration access required' });
+  }
+  next();
+};
+
+// Admin-only middleware (for full admin tasks)
 const requireAdmin = (req: express.Request, res: express.Response, next: express.NextFunction) => {
   if (!req.session.userId || req.session.role !== 'admin') {
     return res.status(403).json({ error: 'Admin access required' });
@@ -132,13 +189,17 @@ app.post('/api/auth/login', async (req, res) => {
     req.session.userId = user.id;
     req.session.username = user.username;
     req.session.role = user.role;
+    req.session.canManageUsers = user.can_manage_users;
+    req.session.canManageIntegrations = user.can_manage_integrations;
 
     console.log('Login successful for:', username);
     console.log('Session ID:', req.sessionID);
     console.log('Session data:', {
       userId: req.session.userId,
       username: req.session.username,
-      role: req.session.role
+      role: req.session.role,
+      canManageUsers: req.session.canManageUsers,
+      canManageIntegrations: req.session.canManageIntegrations
     });
 
     // Save session before sending response
@@ -151,7 +212,9 @@ app.post('/api/auth/login', async (req, res) => {
       res.json({
         id: user.id,
         username: user.username,
-        role: user.role
+        role: user.role,
+        can_manage_users: user.can_manage_users,
+        can_manage_integrations: user.can_manage_integrations
       });
     });
   } catch (error) {
@@ -171,16 +234,43 @@ app.post('/api/auth/logout', (req, res) => {
 });
 
 // Check session
-app.get('/api/auth/session', (req, res) => {
+app.get('/api/auth/session', async (req, res) => {
   if (req.session.userId) {
-    res.json({
-      isAuthenticated: true,
-      user: {
-        id: req.session.userId,
-        username: req.session.username,
-        role: req.session.role
+    try {
+      // Fetch latest user data from DB to be 100% sure
+      const result = await pool.query(
+        'SELECT id, username, role, can_manage_users, can_manage_integrations FROM users WHERE id = $1',
+        [req.session.userId]
+      );
+
+      if (result.rows.length === 0) {
+        return res.json({ isAuthenticated: false, user: null });
       }
-    });
+
+      const user = result.rows[0];
+      
+      // Update session with latest data
+      req.session.username = user.username;
+      req.session.role = user.role;
+      req.session.canManageUsers = user.can_manage_users;
+      req.session.canManageIntegrations = user.can_manage_integrations;
+
+      console.log(`[Auth Session Check] User: ${user.username}`);
+
+      res.json({
+        isAuthenticated: true,
+        user: {
+          id: user.id,
+          username: user.username,
+          role: user.role,
+          can_manage_users: user.can_manage_users,
+          can_manage_integrations: user.can_manage_integrations
+        }
+      });
+    } catch (error) {
+      console.error('[Auth Session Check] Error:', error);
+      res.status(500).json({ error: 'Failed to fetch session' });
+    }
   } else {
     res.json({ isAuthenticated: false, user: null });
   }
@@ -189,10 +279,10 @@ app.get('/api/auth/session', (req, res) => {
 // ============ User Management Endpoints (Admin only) ============
 
 // Get all users
-app.get('/api/users', requireAdmin, async (req, res) => {
+app.get('/api/users', requireUserManagement, async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, username, role, created_at, updated_at FROM users ORDER BY created_at DESC'
+      'SELECT id, username, role, can_manage_users, can_manage_integrations, created_at, updated_at FROM users ORDER BY created_at DESC'
     );
     res.json(result.rows);
   } catch (error) {
@@ -202,9 +292,9 @@ app.get('/api/users', requireAdmin, async (req, res) => {
 });
 
 // Create user
-app.post('/api/users', requireAdmin, async (req, res) => {
+app.post('/api/users', requireUserManagement, async (req, res) => {
   try {
-    const { username, password, role } = req.body;
+    const { username, password, role, canManageUsers, canManageIntegrations } = req.body;
 
     if (!username || !password || !role) {
       return res.status(400).json({ error: 'Username, password, and role required' });
@@ -217,8 +307,8 @@ app.post('/api/users', requireAdmin, async (req, res) => {
     const passwordHash = await bcrypt.hash(password, 10);
 
     const result = await pool.query(
-      'INSERT INTO users (username, password_hash, role) VALUES ($1, $2, $3) RETURNING id, username, role, created_at, updated_at',
-      [username, passwordHash, role]
+      'INSERT INTO users (username, password_hash, role, can_manage_users, can_manage_integrations) VALUES ($1, $2, $3, $4, $5) RETURNING id, username, role, can_manage_users, can_manage_integrations, created_at, updated_at',
+      [username, passwordHash, role, canManageUsers ?? false, canManageIntegrations ?? false]
     );
 
     res.status(201).json(result.rows[0]);
@@ -232,10 +322,10 @@ app.post('/api/users', requireAdmin, async (req, res) => {
 });
 
 // Update user
-app.patch('/api/users/:id', requireAdmin, async (req, res) => {
+app.patch('/api/users/:id', requireUserManagement, async (req, res) => {
   try {
     const { id } = req.params;
-    const { username, password, role } = req.body;
+    const { username, password, role, canManageUsers, canManageIntegrations } = req.body;
 
     let query = 'UPDATE users SET updated_at = CURRENT_TIMESTAMP';
     const values: any[] = [];
@@ -263,7 +353,19 @@ app.patch('/api/users/:id', requireAdmin, async (req, res) => {
       paramCount++;
     }
 
-    query += ` WHERE id = $${paramCount} RETURNING id, username, role, created_at, updated_at`;
+    if (canManageUsers !== undefined) {
+      query += `, can_manage_users = $${paramCount}`;
+      values.push(canManageUsers);
+      paramCount++;
+    }
+
+    if (canManageIntegrations !== undefined) {
+      query += `, can_manage_integrations = $${paramCount}`;
+      values.push(canManageIntegrations);
+      paramCount++;
+    }
+
+    query += ` WHERE id = $${paramCount} RETURNING id, username, role, can_manage_users, can_manage_integrations, created_at, updated_at`;
     values.push(id);
 
     const result = await pool.query(query, values);
@@ -283,7 +385,7 @@ app.patch('/api/users/:id', requireAdmin, async (req, res) => {
 });
 
 // Delete user
-app.delete('/api/users/:id', requireAdmin, async (req, res) => {
+app.delete('/api/users/:id', requireUserManagement, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -391,7 +493,7 @@ app.get('/api/menu-items', async (_req, res) => {
 });
 
 // Admin: get all menu items (including disabled)
-app.get('/api/admin/menu-items', requireAdmin, async (_req, res) => {
+app.get('/api/admin/menu-items', requireAuth, async (_req, res) => {
   try {
     const result = await pool.query(
       `SELECT id, name, description, image_url, calories, category, price, is_enabled,
@@ -407,7 +509,7 @@ app.get('/api/admin/menu-items', requireAdmin, async (_req, res) => {
 });
 
 // Admin: create menu item
-app.post('/api/admin/menu-items', requireAdmin, async (req, res) => {
+app.post('/api/admin/menu-items', requireAuth, async (req, res) => {
   try {
     const { name, description, imageUrl, calories, category, price, isEnabled } = req.body;
 
@@ -431,7 +533,7 @@ app.post('/api/admin/menu-items', requireAdmin, async (req, res) => {
 });
 
 // Admin: update menu item
-app.patch('/api/admin/menu-items/:id', requireAdmin, async (req, res) => {
+app.patch('/api/admin/menu-items/:id', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const { name, description, imageUrl, calories, category, price, isEnabled } = req.body;
@@ -498,7 +600,7 @@ app.patch('/api/admin/menu-items/:id', requireAdmin, async (req, res) => {
 });
 
 // Admin: delete menu item
-app.delete('/api/admin/menu-items/:id', requireAdmin, async (req, res) => {
+app.delete('/api/admin/menu-items/:id', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const result = await pool.query(
@@ -517,10 +619,10 @@ app.delete('/api/admin/menu-items/:id', requireAdmin, async (req, res) => {
   }
 });
 
-// ============ Integration Endpoints (Admin only) ============
+// ============ Integration Endpoints (Admin only or specific permission) ============
 
 // Get integration settings
-app.get('/api/admin/integration', requireAdmin, async (_req, res) => {
+app.get('/api/admin/integration', requireIntegrationManagement, async (_req, res) => {
   try {
     const result = await pool.query('SELECT * FROM integrations LIMIT 1');
     res.json(result.rows[0] || {});
@@ -531,7 +633,7 @@ app.get('/api/admin/integration', requireAdmin, async (_req, res) => {
 });
 
 // Update integration settings
-app.patch('/api/admin/integration', requireAdmin, async (req, res) => {
+app.patch('/api/admin/integration', requireIntegrationManagement, async (req, res) => {
   try {
     const { platformUrl, apiKey, restaurantExternalId, restaurantAddress, restaurantPhone, currency } = req.body;
     
@@ -558,7 +660,7 @@ app.patch('/api/admin/integration', requireAdmin, async (req, res) => {
 });
 
 // Sync/Export menu to external platform
-app.post('/api/admin/integration/sync', requireAdmin, async (_req, res) => {
+app.post('/api/admin/integration/sync', requireIntegrationManagement, async (_req, res) => {
   try {
     // 1. Get all menu items (both enabled and disabled)
     const menuResult = await pool.query(

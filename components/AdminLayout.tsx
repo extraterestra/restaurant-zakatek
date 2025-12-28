@@ -1,4 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { AuthSession } from '../types';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
 interface AdminLayoutProps {
   active: 'orders' | 'users' | 'food' | 'integration';
@@ -6,12 +9,33 @@ interface AdminLayoutProps {
 }
 
 export const AdminLayout: React.FC<AdminLayoutProps> = ({ active, children }) => {
+  const [session, setSession] = useState<AuthSession | null>(null);
+
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/auth/session`, {
+          credentials: 'include',
+        });
+        const data = await response.json();
+        setSession(data);
+      } catch (err) {
+        console.error('Error checking session:', err);
+      }
+    };
+    checkSession();
+  }, []);
+
   const navItemClasses = (isActive: boolean) =>
     `flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
       isActive
         ? 'bg-emerald-600 text-white'
         : 'text-gray-200 hover:bg-gray-800 hover:text-white'
     }`;
+
+  const user = session?.user;
+  const canManageUsers = user?.role === 'admin' || user?.can_manage_users || (user as any)?.canManageUsers;
+  const canManageIntegrations = user?.role === 'admin' || user?.can_manage_integrations || (user as any)?.canManageIntegrations;
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -36,13 +60,15 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ active, children }) =>
             <i className="fas fa-receipt w-4"></i>
             <span>Orders</span>
           </a>
-          <a
-            href="/admin/users"
-            className={navItemClasses(active === 'users')}
-          >
-            <i className="fas fa-users w-4"></i>
-            <span>User Management</span>
-          </a>
+          {canManageUsers && (
+            <a
+              href="/admin/users"
+              className={navItemClasses(active === 'users')}
+            >
+              <i className="fas fa-users w-4"></i>
+              <span>User Management</span>
+            </a>
+          )}
           <a
             href="/admin/food"
             className={navItemClasses(active === 'food')}
@@ -50,13 +76,15 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ active, children }) =>
             <i className="fas fa-hamburger w-4"></i>
             <span>Food Configuration</span>
           </a>
-          <a
-            href="/admin/integration"
-            className={navItemClasses(active === 'integration')}
-          >
-            <i className="fas fa-network-wired w-4"></i>
-            <span>Integration</span>
-          </a>
+          {canManageIntegrations && (
+            <a
+              href="/admin/integration"
+              className={navItemClasses(active === 'integration')}
+            >
+              <i className="fas fa-network-wired w-4"></i>
+              <span>Integration</span>
+            </a>
+          )}
         </nav>
 
         <div className="px-4 py-3 border-t border-gray-800 text-xs text-gray-500">

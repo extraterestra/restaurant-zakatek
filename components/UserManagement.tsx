@@ -17,6 +17,8 @@ export const UserManagement: React.FC = () => {
         username: '',
         password: '',
         role: 'read_only' as 'admin' | 'read_only' | 'write',
+        canManageUsers: false,
+        canManageIntegrations: false,
     });
 
     const fetchUsers = async () => {
@@ -47,8 +49,13 @@ export const UserManagement: React.FC = () => {
             });
             const data = await response.json();
             setSession(data);
+
+            if (!data.isAuthenticated || (data.user.role !== 'admin' && !data.user.can_manage_users)) {
+                window.location.href = '/admin';
+            }
         } catch (err) {
             console.error('Error checking session:', err);
+            window.location.href = '/admin';
         }
     };
 
@@ -75,7 +82,7 @@ export const UserManagement: React.FC = () => {
             }
 
             setShowCreateModal(false);
-            setFormData({ username: '', password: '', role: 'read_only' });
+            setFormData({ username: '', password: '', role: 'read_only', canManageUsers: false, canManageIntegrations: false });
             fetchUsers();
         } catch (err: any) {
             alert(err.message || 'Failed to create user');
@@ -87,7 +94,11 @@ export const UserManagement: React.FC = () => {
         if (!editingUser) return;
 
         try {
-            const updateData: any = { role: formData.role };
+            const updateData: any = { 
+                role: formData.role,
+                canManageUsers: formData.canManageUsers,
+                canManageIntegrations: formData.canManageIntegrations
+            };
             if (formData.password) {
                 updateData.password = formData.password;
             }
@@ -107,7 +118,7 @@ export const UserManagement: React.FC = () => {
             }
 
             setEditingUser(null);
-            setFormData({ username: '', password: '', role: 'read_only' });
+            setFormData({ username: '', password: '', role: 'read_only', canManageUsers: false, canManageIntegrations: false });
             fetchUsers();
         } catch (err: any) {
             alert(err.message || 'Failed to update user');
@@ -140,6 +151,8 @@ export const UserManagement: React.FC = () => {
             username: user.username,
             password: '',
             role: user.role,
+            canManageUsers: user.can_manage_users,
+            canManageIntegrations: user.can_manage_integrations,
         });
     };
 
@@ -213,7 +226,7 @@ export const UserManagement: React.FC = () => {
                             <button
                                 onClick={() => {
                                     setShowCreateModal(true);
-                                    setFormData({ username: '', password: '', role: 'read_only' });
+                                    setFormData({ username: '', password: '', role: 'read_only', canManageUsers: false, canManageIntegrations: false });
                                 }}
                                 className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
                             >
@@ -250,6 +263,9 @@ export const UserManagement: React.FC = () => {
                                             Role
                                         </th>
                                         <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Capabilities
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                             Created At
                                         </th>
                                         <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
@@ -274,6 +290,29 @@ export const UserManagement: React.FC = () => {
                                                 >
                                                     {getRoleLabel(user.role)}
                                                 </span>
+                                            </td>
+                                            <td className="px-4 py-3 whitespace-nowrap">
+                                                <div className="flex flex-col gap-1">
+                                                    {user.role === 'admin' ? (
+                                                        <span className="text-xs text-emerald-600 font-medium italic">Full Access</span>
+                                                    ) : (
+                                                        <>
+                                                            {user.can_manage_users && (
+                                                                <span className="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded border border-blue-100 w-fit">
+                                                                    User Management
+                                                                </span>
+                                                            )}
+                                                            {user.can_manage_integrations && (
+                                                                <span className="text-[10px] bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded border border-purple-100 w-fit">
+                                                                    Integrations
+                                                                </span>
+                                                            )}
+                                                            {!user.can_manage_users && !user.can_manage_integrations && (
+                                                                <span className="text-[10px] text-gray-400 italic">None</span>
+                                                            )}
+                                                        </>
+                                                    )}
+                                                </div>
                                             </td>
                                             <td className="px-4 py-3 whitespace-nowrap">
                                                 <div className="text-sm text-gray-900">{formatDate(user.created_at)}</div>
@@ -345,6 +384,31 @@ export const UserManagement: React.FC = () => {
                                     <option value="admin">Admin</option>
                                 </select>
                             </div>
+                            {formData.role !== 'admin' && (
+                                <div className="space-y-3 pt-2">
+                                    <label className="block text-sm font-semibold text-gray-700">Capabilities</label>
+                                    <div className="flex items-center gap-3">
+                                        <input
+                                            type="checkbox"
+                                            id="canManageUsersCreate"
+                                            checked={formData.canManageUsers}
+                                            onChange={(e) => setFormData({ ...formData, canManageUsers: e.target.checked })}
+                                            className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
+                                        />
+                                        <label htmlFor="canManageUsersCreate" className="text-sm text-gray-700">Can access User Management</label>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <input
+                                            type="checkbox"
+                                            id="canManageIntegrationsCreate"
+                                            checked={formData.canManageIntegrations}
+                                            onChange={(e) => setFormData({ ...formData, canManageIntegrations: e.target.checked })}
+                                            className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
+                                        />
+                                        <label htmlFor="canManageIntegrationsCreate" className="text-sm text-gray-700">Can access Integrations</label>
+                                    </div>
+                                </div>
+                            )}
                             <div className="flex gap-3 pt-4">
                                 <button
                                     type="button"
@@ -407,6 +471,31 @@ export const UserManagement: React.FC = () => {
                                     <option value="admin">Admin</option>
                                 </select>
                             </div>
+                            {formData.role !== 'admin' && (
+                                <div className="space-y-3 pt-2">
+                                    <label className="block text-sm font-semibold text-gray-700">Capabilities</label>
+                                    <div className="flex items-center gap-3">
+                                        <input
+                                            type="checkbox"
+                                            id="canManageUsersEdit"
+                                            checked={formData.canManageUsers}
+                                            onChange={(e) => setFormData({ ...formData, canManageUsers: e.target.checked })}
+                                            className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
+                                        />
+                                        <label htmlFor="canManageUsersEdit" className="text-sm text-gray-700">Can access User Management</label>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <input
+                                            type="checkbox"
+                                            id="canManageIntegrationsEdit"
+                                            checked={formData.canManageIntegrations}
+                                            onChange={(e) => setFormData({ ...formData, canManageIntegrations: e.target.checked })}
+                                            className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
+                                        />
+                                        <label htmlFor="canManageIntegrationsEdit" className="text-sm text-gray-700">Can access Integrations</label>
+                                    </div>
+                                </div>
+                            )}
                             <div className="flex gap-3 pt-4">
                                 <button
                                     type="button"
