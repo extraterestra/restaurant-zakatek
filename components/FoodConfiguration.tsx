@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Category } from '../types';
+import { Category, AuthSession } from '../types';
 import { AdminLayout } from './AdminLayout';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
@@ -40,6 +40,7 @@ export const FoodConfiguration: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
+  const [session, setSession] = useState<AuthSession | null>(null);
   const [sortConfig, setSortConfig] = useState<{
     key: 'category' | 'calories' | 'price';
     direction: 'asc' | 'desc';
@@ -54,25 +55,45 @@ export const FoodConfiguration: React.FC = () => {
     isEnabled: true,
   });
 
+  const checkSession = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/session`, {
+        credentials: 'include',
+      });
+      const data = await response.json();
+      setSession(data);
+
+      if (!data.isAuthenticated) {
+        window.location.href = '/admin';
+      }
+    } catch (err) {
+      console.error('Error checking session:', err);
+      window.location.href = '/admin';
+    }
+  };
+
   const fetchItems = async () => {
     try {
       setLoading(true);
       const res = await fetch(`${API_BASE_URL}/api/admin/menu-items`, {
         credentials: 'include',
       });
-      if (!res.ok) {
+      if (res.ok) {
+        const data = await res.json();
+        console.log('Fetched admin menu items:', data);
+        
+        // Apply default sorting by category
+        const sortedData = [...data].sort((a, b) => 
+          a.category.localeCompare(b.category)
+        );
+        
+        setItems(sortedData);
+        setError(null);
+      } else if (res.status === 403 || res.status === 401) {
+        window.location.href = '/admin';
+      } else {
         throw new Error('Failed to fetch menu items');
       }
-      const data = await res.json();
-      console.log('Fetched admin menu items:', data);
-      
-      // Apply default sorting by category
-      const sortedData = [...data].sort((a, b) => 
-        a.category.localeCompare(b.category)
-      );
-      
-      setItems(sortedData);
-      setError(null);
     } catch (err: any) {
       console.error('Error fetching menu items:', err);
       setError(err.message || 'Failed to fetch menu items');
@@ -114,6 +135,7 @@ export const FoodConfiguration: React.FC = () => {
   };
 
   useEffect(() => {
+    checkSession();
     fetchItems();
   }, []);
 

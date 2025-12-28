@@ -51,6 +51,7 @@ function App() {
         credentials: 'include',
       });
       const data = await response.json();
+      console.log('[App] Auth Session Data:', data);
       setAuthSession(data);
     } catch (err) {
       console.error('Error checking session:', err);
@@ -147,8 +148,11 @@ function App() {
       return null;
     }
 
-    // Check if user is admin
-    if (authSession.user?.role !== 'admin') {
+    // Check if user is admin or has permission
+    const user = authSession.user;
+    const canManageUsers = user?.role === 'admin' || user?.can_manage_users || (user as any)?.canManageUsers;
+
+    if (!canManageUsers) {
       return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
           <div className="text-center">
@@ -169,7 +173,7 @@ function App() {
     return <UserManagement />;
   }
 
-  // Handle food configuration route (admin only)
+  // Handle food configuration route (available to all authenticated users)
   if (currentPath === '/admin/food' || window.location.pathname === '/admin/food') {
     // Show loading while checking auth
     if (authLoading) {
@@ -187,25 +191,6 @@ function App() {
     if (!authSession?.isAuthenticated) {
       window.location.href = '/admin';
       return null;
-    }
-
-    // Only admins can manage food configuration
-    if (authSession.user?.role !== 'admin') {
-      return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-center">
-            <i className="fas fa-exclamation-triangle text-5xl text-red-500 mb-4"></i>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
-            <p className="text-gray-600 mb-6">Only admins can manage food configuration.</p>
-            <a
-              href="/admin"
-              className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors inline-block"
-            >
-              Back to Admin Dashboard
-            </a>
-          </div>
-        </div>
-      );
     }
 
     return <FoodConfiguration />;
@@ -231,14 +216,17 @@ function App() {
       return null;
     }
 
-    // Only admins can manage integration
-    if (authSession.user?.role !== 'admin') {
+    // Only admins or users with permission can manage integration
+    const user = authSession.user;
+    const canManageIntegrations = user?.role === 'admin' || user?.can_manage_integrations || (user as any)?.canManageIntegrations;
+
+    if (!canManageIntegrations) {
       return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
           <div className="text-center">
             <i className="fas fa-exclamation-triangle text-5xl text-red-500 mb-4"></i>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
-            <p className="text-gray-600 mb-6">Only admins can manage integration.</p>
+            <p className="text-gray-600 mb-6">Only admins or authorized users can manage integration.</p>
             <a
               href="/admin"
               className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors inline-block"
@@ -277,6 +265,7 @@ function App() {
           category: item.category as Category,
           price: Number(item.price),
           ingredients: [],
+          isEnabled: item.is_enabled, // Include isEnabled in product data
         }));
         setMenuItems(mapped);
       } catch (err) {

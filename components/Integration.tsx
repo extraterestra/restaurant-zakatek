@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AdminLayout } from './AdminLayout';
+import { AuthSession } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
@@ -28,6 +29,24 @@ export const Integration: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [session, setSession] = useState<AuthSession | null>(null);
+
+  const checkSession = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/session`, {
+        credentials: 'include',
+      });
+      const data = await response.json();
+      setSession(data);
+
+      if (!data.isAuthenticated || (data.user.role !== 'admin' && !data.user.can_manage_integrations)) {
+        window.location.href = '/admin';
+      }
+    } catch (err) {
+      console.error('Error checking session:', err);
+      window.location.href = '/admin';
+    }
+  };
 
   const fetchSettings = async () => {
     try {
@@ -50,6 +69,8 @@ export const Integration: React.FC = () => {
             last_sync_at: data.last_sync_at || null,
           });
         }
+      } else if (res.status === 403 || res.status === 401) {
+        window.location.href = '/admin';
       }
     } catch (err) {
       console.error('Failed to fetch settings:', err);
@@ -59,6 +80,7 @@ export const Integration: React.FC = () => {
   };
 
   useEffect(() => {
+    checkSession();
     fetchSettings();
   }, []);
 
