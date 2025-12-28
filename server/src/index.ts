@@ -476,13 +476,12 @@ app.patch('/api/orders/:id/status', requireWriteAccess, async (req, res) => {
 
 // ============ Menu Items (Food Configuration) ============
 
-// Public: get enabled menu items for the main menu
+// Public: get ALL menu items for the main menu
 app.get('/api/menu-items', async (_req, res) => {
   try {
     const result = await pool.query(
       `SELECT id, name, description, image_url, calories, category, price, is_enabled
        FROM menu_items
-       WHERE is_enabled = TRUE
        ORDER BY category, name`
     );
     res.json(result.rows);

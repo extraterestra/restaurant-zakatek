@@ -18,6 +18,7 @@ export interface Product {
   image: string;
   isSpicy?: boolean;
   isVegetarian?: boolean;
+  isEnabled?: boolean;
 }
 
 export interface CartItem extends Product {

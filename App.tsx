@@ -265,6 +265,7 @@ function App() {
           category: item.category as Category,
           price: Number(item.price),
           ingredients: [],
+          isEnabled: item.is_enabled, // Include isEnabled in product data
         }));
         setMenuItems(mapped);
       } catch (err) {

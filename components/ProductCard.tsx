@@ -11,6 +11,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
   const [isAdded, setIsAdded] = useState(false);
 
   const handleAddToCart = () => {
+    if (product.isEnabled === false) return;
     onAddToCart(product);
     setIsAdded(true);
 
@@ -20,8 +21,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
     }, 1500);
   };
 
+  const isDisabled = product.isEnabled === false;
+
   return (
-    <div className="group bg-white rounded-3xl shadow-sm hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-300 border border-gray-100 overflow-hidden flex flex-col h-full">
+    <div className={`group bg-white rounded-3xl shadow-sm hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-300 border border-gray-100 overflow-hidden flex flex-col h-full ${isDisabled ? 'opacity-75 grayscale-[0.5]' : ''}`}>
       {/* Image Container */}
       <div className="relative h-48 overflow-hidden bg-gray-100">
         <img
@@ -40,16 +43,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
               Wege
             </span>
           )}
+          {isDisabled && (
+            <span className="bg-gray-700/90 backdrop-blur text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">
+              Niedostępne
+            </span>
+          )}
         </div>
       </div>
 
       {/* Content */}
       <div className="p-5 flex-1 flex flex-col">
         <div className="flex justify-between items-start mb-2">
-          <h3 className="text-lg font-bold text-gray-900 group-hover:text-emerald-600 transition-colors">
+          <h3 className={`text-lg font-bold text-gray-900 transition-colors ${!isDisabled ? 'group-hover:text-emerald-600' : ''}`}>
             {product.name}
           </h3>
-          <span className="font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">
+          <span className={`font-semibold px-2 py-1 rounded-lg ${isDisabled ? 'text-gray-400 bg-gray-50' : 'text-emerald-600 bg-emerald-50'}`}>
             {(product.price || 0).toFixed(2)} zł
           </span>
         </div>
@@ -71,15 +79,22 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
 
         <button
           onClick={handleAddToCart}
-          disabled={isAdded}
-          className={`w-full py-3 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 ${isAdded
-            ? 'bg-lime-500 text-white scale-95 shadow-inner cursor-default'
-            : 'bg-gray-900 text-white hover:bg-emerald-600 active:bg-emerald-700 hover:shadow-lg'
-            }`}
+          disabled={isAdded || isDisabled}
+          className={`w-full py-3 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 ${
+            isAdded
+              ? 'bg-lime-500 text-white scale-95 shadow-inner cursor-default'
+              : isDisabled
+              ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              : 'bg-gray-900 text-white hover:bg-emerald-600 active:bg-emerald-700 hover:shadow-lg'
+          }`}
         >
           {isAdded ? (
             <>
               <i className="fas fa-check animate-bounce"></i> Dodano!
+            </>
+          ) : isDisabled ? (
+            <>
+              <i className="fas fa-times-circle"></i> Niedostępne
             </>
           ) : (
             <>
