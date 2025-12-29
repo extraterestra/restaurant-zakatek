@@ -5,7 +5,7 @@ import { Hero } from './components/Hero';
 import { ProductCard } from './components/ProductCard';
 import { CartSidebar } from './components/CartSidebar';
 import { CheckoutModal } from './components/CheckoutModal';
-import { AIChef } from './components/AIChef';
+
 import { Footer } from './components/Footer';
 import { Admin } from './components/Admin';
 import { Login } from './components/Login';
@@ -111,7 +111,7 @@ function App() {
       return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
           <div className="text-center">
-            <i className="fas fa-circle-notch fa-spin text-4xl text-emerald-500 mb-4"></i>
+            <i className="fas fa-circle-notch fa-spin text-4xl text-sienna-500 mb-4"></i>
             <p className="text-gray-600">Loading...</p>
           </div>
         </div>
@@ -136,7 +136,7 @@ function App() {
       return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
           <div className="text-center">
-            <i className="fas fa-circle-notch fa-spin text-4xl text-emerald-500 mb-4"></i>
+            <i className="fas fa-circle-notch fa-spin text-4xl text-sienna-500 mb-4"></i>
             <p className="text-gray-600">Loading...</p>
           </div>
         </div>
@@ -162,7 +162,7 @@ function App() {
             <p className="text-gray-600 mb-6">You do not have permission to access this page.</p>
             <a
               href="/admin"
-              className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors inline-block"
+              className="bg-sienna-600 hover:bg-sienna-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors inline-block"
             >
               Back to Admin Dashboard
             </a>
@@ -181,7 +181,7 @@ function App() {
       return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
           <div className="text-center">
-            <i className="fas fa-circle-notch fa-spin text-4xl text-emerald-500 mb-4"></i>
+            <i className="fas fa-circle-notch fa-spin text-4xl text-sienna-500 mb-4"></i>
             <p className="text-gray-600">Loading...</p>
           </div>
         </div>
@@ -204,7 +204,7 @@ function App() {
       return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
           <div className="text-center">
-            <i className="fas fa-circle-notch fa-spin text-4xl text-emerald-500 mb-4"></i>
+            <i className="fas fa-circle-notch fa-spin text-4xl text-sienna-500 mb-4"></i>
             <p className="text-gray-600">Loading...</p>
           </div>
         </div>
@@ -230,7 +230,7 @@ function App() {
             <p className="text-gray-600 mb-6">Only admins or authorized users can manage integration.</p>
             <a
               href="/admin"
-              className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors inline-block"
+              className="bg-sienna-600 hover:bg-sienna-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors inline-block"
             >
               Back to Admin Dashboard
             </a>
@@ -357,13 +357,13 @@ function App() {
   };
 
   const SimplePage = ({ title, content }: { title: string, content: string }) => (
-    <div className="min-h-[60vh] bg-gray-50 pt-20 pb-20">
+    <div className="min-h-[60vh] bg-cream-50 pt-20 pb-20">
       {/* Decorative Header */}
-      <div className="bg-gray-900 text-white py-16 relative overflow-hidden">
+      <div className="bg-sienna-950 text-white py-16 relative overflow-hidden">
         <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">{title}</h1>
-          <div className="w-20 h-1 bg-emerald-500 mx-auto rounded-full"></div>
+          <div className="w-20 h-1 bg-sienna-500 mx-auto rounded-full"></div>
         </div>
       </div>
 
@@ -371,7 +371,7 @@ function App() {
         <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 border border-gray-100">
           <button
             onClick={() => handleNavigate('/')}
-            className="mb-8 flex items-center text-sm font-medium text-emerald-600 hover:text-emerald-700 transition-colors group"
+            className="mb-8 flex items-center text-sm font-medium text-sienna-600 hover:text-sienna-700 transition-colors group"
           >
             <i className="fas fa-arrow-left mr-2 transform group-hover:-translate-x-1 transition-transform"></i>
             Powrót do strony głównej
@@ -420,7 +420,7 @@ function App() {
                         key={cat}
                         onClick={() => setActiveCategory(cat)}
                         className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${activeCategory === cat
-                          ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200'
+                          ? 'bg-sienna-600 text-white shadow-lg shadow-sienna-200'
                           : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
                           }`}
                       >
@@ -435,7 +435,7 @@ function App() {
                 {sortedCategories.map(category => (
                   <div key={category} className="space-y-6">
                     <div className="flex items-center gap-4">
-                      <h3 className="text-2xl font-bold text-gray-900 border-l-4 border-emerald-500 pl-4">
+                      <h3 className="text-2xl font-bold text-gray-900 border-l-4 border-sienna-500 pl-4">
                         {category}
                       </h3>
                       <div className="flex-1 h-px bg-gray-200"></div>
@@ -462,34 +462,7 @@ function App() {
               )}
             </div>
 
-            {/* Mock Map Section */}
-            <div className="bg-gray-100 py-16">
-              <div className="max-w-7xl mx-auto px-4">
-                <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 flex flex-col md:flex-row h-[400px]">
-                  <div className="md:w-1/3 p-10 flex flex-col justify-center bg-gray-900 text-white">
-                    <h3 className="text-2xl font-bold mb-4">Strefa Dostaw</h3>
-                    <p className="text-gray-400 mb-6">Dostarczamy gorące, domowe posiłki w 30 minut do całego centrum i okolicznych dzielnic.</p>
-                    <ul className="space-y-3">
-                      <li className="flex items-center gap-3"><i className="fas fa-check-circle text-emerald-500"></i> Darmowa dostawa pow. 100 zł</li>
-                      <li className="flex items-center gap-3"><i className="fas fa-check-circle text-emerald-500"></i> Śledzenie w czasie rzeczywistym</li>
-                    </ul>
-                  </div>
-                  <div className="md:w-2/3 bg-gray-200 relative">
-                    {/* Abstract map representation */}
-                    <div className="absolute inset-0 opacity-50 bg-[url('https://picsum.photos/800/600?grayscale&blur=2')] bg-cover bg-center"></div>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="bg-white/90 backdrop-blur px-6 py-4 rounded-xl shadow-lg flex items-center gap-3">
-                        <span className="relative flex h-3 w-3">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
-                        </span>
-                        <span className="font-bold text-gray-800">Jesteś w strefie!</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+
           </>
         ) : null}
 
@@ -580,11 +553,7 @@ function App() {
         onAddToCart={addToCart}
       />
 
-      <AIChef
-        onAddToCart={addToCart}
-        onViewDetails={setSelectedProduct}
-        menuItems={menuItems}
-      />
+
     </div >
   );
 }
