@@ -72,9 +72,18 @@ export const AIChef: React.FC<AIChefProps> = ({ onAddToCart, onViewDetails, menu
         {product && onAddToCart && onViewDetails && SHOW_CARD_CATEGORIES.includes(product.category) && (
           <div className="mt-2 w-full max-w-[200px] shadow-lg rounded-2xl overflow-hidden self-center bg-gray-50 border border-gray-100">
             <div
-              onClick={() => onViewDetails(product)}
-              className="h-24 w-full relative cursor-pointer group"
+              onClick={() => {
+                if (product.isEnabled !== false) {
+                  onAddToCart(product);
+                }
+              }}
+              className={`h-24 w-full relative group ${product.isEnabled === false ? 'cursor-not-allowed opacity-75 grayscale' : 'cursor-pointer'}`}
             >
+              {product.isEnabled === false && (
+                <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/10">
+                  <span className="bg-gray-800/90 text-white text-[10px] px-2 py-1 rounded">Niedostępne</span>
+                </div>
+              )}
               <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
             </div>
             <div className="p-3">
@@ -85,7 +94,11 @@ export const AIChef: React.FC<AIChefProps> = ({ onAddToCart, onViewDetails, menu
               </div>
               <button
                 onClick={() => onAddToCart(product)}
-                className="w-full bg-emerald-600 text-white text-xs py-1.5 rounded-lg hover:bg-emerald-700 transition-colors"
+                disabled={product.isEnabled === false}
+                className={`w-full text-xs py-1.5 rounded-lg transition-colors ${product.isEnabled === false
+                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                  }`}
               >
                 Do koszyka
               </button>

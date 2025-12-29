@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Product } from '../types';
 
 interface ProductModalProps {
@@ -11,10 +11,18 @@ interface ProductModalProps {
 export const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onClose, onAddToCart }) => {
     const [isAdded, setIsAdded] = useState(false);
 
+    // Reset state when product changes or modal closes
+    useEffect(() => {
+        setIsAdded(false);
+    }, [product, isOpen]);
+
     if (!isOpen) return null;
+
+    const isDisabled = product.isEnabled === false;
 
     const handleAddToCart = (e: React.MouseEvent) => {
         e.stopPropagation();
+        if (isDisabled) return;
         onAddToCart(product);
         setIsAdded(true);
         setTimeout(() => setIsAdded(false), 1500);
@@ -53,6 +61,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onC
                         {product.isVegetarian && (
                             <span className="bg-lime-500/90 backdrop-blur text-white text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider shadow-sm">
                                 <i className="fas fa-leaf mr-1"></i> Wege
+                            </span>
+                        )}
+                        {isDisabled && (
+                            <span className="bg-gray-700/90 backdrop-blur text-white text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider shadow-sm">
+                                Niedostępne
                             </span>
                         )}
                     </div>
@@ -100,14 +113,21 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onC
                     <div className="mt-auto pt-4 md:pt-0">
                         <button
                             onClick={handleAddToCart}
+                            disabled={isAdded || isDisabled}
                             className={`w-full py-4 rounded-xl font-bold text-base transition-all duration-300 flex items-center justify-center gap-2 transform active:scale-95 ${isAdded
-                                    ? 'bg-lime-500 text-white shadow-inner cursor-default'
+                                ? 'bg-lime-500 text-white shadow-inner cursor-default'
+                                : isDisabled
+                                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                                     : 'bg-gray-900 text-white hover:bg-emerald-600 hover:shadow-lg shadow-emerald-500/30'
                                 }`}
                         >
                             {isAdded ? (
                                 <>
                                     <i className="fas fa-check animate-bounce"></i> Dodano do koszyka!
+                                </>
+                            ) : isDisabled ? (
+                                <>
+                                    <i className="fas fa-times-circle"></i> Niedostępne
                                 </>
                             ) : (
                                 <>

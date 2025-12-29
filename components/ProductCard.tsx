@@ -12,6 +12,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, 
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (product.isEnabled === false) return;
     onAddToCart(product);
     setIsAdded(true);
 
@@ -21,10 +22,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, 
     }, 1500);
   };
 
+  const isDisabled = product.isEnabled === false;
+
   return (
     <div
-      onClick={() => onViewDetails(product)}
-      className="group bg-[#FCFBF7] rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-[#E5E1D1] overflow-hidden flex flex-col h-full cursor-pointer"
+      onClick={handleAddToCart}
+      className={`group bg-[#FCFBF7] rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-[#E5E1D1] overflow-hidden flex flex-col h-full cursor-pointer ${isDisabled ? 'opacity-75 grayscale-[0.5] cursor-not-allowed' : ''}`}
     >
       {/* Image Container */}
       <div className="relative h-48 overflow-hidden bg-[#F3F1E9]">
@@ -42,6 +45,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, 
           {product.isVegetarian && (
             <span className="bg-sienna-600/90 backdrop-blur text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider">
               <i className="fas fa-leaf mr-1"></i> Wege
+            </span>
+          )}
+          {isDisabled && (
+            <span className="bg-gray-700/90 backdrop-blur text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">
+              Niedostępne
             </span>
           )}
         </div>
@@ -75,15 +83,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, 
 
         <button
           onClick={handleAddToCart}
-          disabled={isAdded}
+          disabled={isAdded || isDisabled}
           className={`w-full py-3 rounded-lg font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 border-2 ${isAdded
             ? 'bg-sienna-600 text-white border-sienna-600 scale-95 shadow-inner'
-            : 'bg-[#453F36] text-white border-[#453F36] hover:bg-[#A0522D] hover:border-[#A0522D] hover:shadow-md'
+            : isDisabled
+              ? 'bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed'
+              : 'bg-[#453F36] text-white border-[#453F36] hover:bg-[#A0522D] hover:border-[#A0522D] hover:shadow-md'
             }`}
         >
           {isAdded ? (
             <>
               <i className="fas fa-check"></i> Dodano do koszyka
+            </>
+          ) : isDisabled ? (
+            <>
+              <i className="fas fa-times-circle"></i> Niedostępne
             </>
           ) : (
             <>

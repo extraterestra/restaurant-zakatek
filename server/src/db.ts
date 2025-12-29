@@ -37,11 +37,20 @@ export const initDb = async () => {
         username VARCHAR(255) UNIQUE NOT NULL,
         password_hash VARCHAR(255) NOT NULL,
         role VARCHAR(50) NOT NULL CHECK (role IN ('admin', 'read_only', 'write')),
+        can_manage_users BOOLEAN DEFAULT FALSE,
+        can_manage_integrations BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
     console.log('Users table initialized successfully');
+
+    // Ensure columns exist if table was already created
+    await pool.query(`
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS can_manage_users BOOLEAN DEFAULT FALSE;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS can_manage_integrations BOOLEAN DEFAULT FALSE;
+    `);
+    console.log('Users table columns verified');
 
     // Create menu_items table for food configuration
     await pool.query(`
@@ -310,8 +319,8 @@ export const initDb = async () => {
     if (parseInt(userCount.rows[0].count) === 0) {
       const passwordHash = await bcrypt.hash('admin0617', 10);
       await pool.query(
-        'INSERT INTO users (username, password_hash, role) VALUES ($1, $2, $3)',
-        ['admin', passwordHash, 'admin']
+        'INSERT INTO users (username, password_hash, role, can_manage_users, can_manage_integrations) VALUES ($1, $2, $3, $4, $5)',
+        ['admin', passwordHash, 'admin', true, true]
       );
       console.log('Default admin user created successfully');
     }
