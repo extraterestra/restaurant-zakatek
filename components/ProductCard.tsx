@@ -40,7 +40,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, 
             </span>
           )}
           {product.isVegetarian && (
-            <span className="bg-[#65A30D]/90 backdrop-blur text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider">
+            <span className="bg-sienna-600/90 backdrop-blur text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider">
               <i className="fas fa-leaf mr-1"></i> Wege
             </span>
           )}
@@ -77,7 +77,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, 
           onClick={handleAddToCart}
           disabled={isAdded}
           className={`w-full py-3 rounded-lg font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 border-2 ${isAdded
-            ? 'bg-[#65A30D] text-white border-[#65A30D] scale-95 shadow-inner'
+            ? 'bg-sienna-600 text-white border-sienna-600 scale-95 shadow-inner'
             : 'bg-[#453F36] text-white border-[#453F36] hover:bg-[#A0522D] hover:border-[#A0522D] hover:shadow-md'
             }`}
         >
