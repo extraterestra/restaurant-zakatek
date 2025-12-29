@@ -300,8 +300,8 @@ export const Admin: React.FC = () => {
                           onChange={(e) => updateOrderStatus(order.id, e.target.value)}
                           disabled={session?.user?.role === 'read_only'}
                           className={`text-xs font-semibold px-3 py-1.5 rounded-lg border-0 outline-none transition-colors ${getStatusColor(order.status)} ${session?.user?.role === 'read_only'
-                              ? 'opacity-50 cursor-not-allowed'
-                              : 'cursor-pointer focus:ring-2 focus:ring-emerald-500'
+                            ? 'opacity-50 cursor-not-allowed'
+                            : 'cursor-pointer focus:ring-2 focus:ring-emerald-500'
                             }`}
                         >
                           {statusOptions.map((option) => (

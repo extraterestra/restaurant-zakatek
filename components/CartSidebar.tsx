@@ -10,12 +10,12 @@ interface CartSidebarProps {
   onCheckout: () => void;
 }
 
-export const CartSidebar: React.FC<CartSidebarProps> = ({ 
-  isOpen, 
-  onClose, 
-  items, 
+export const CartSidebar: React.FC<CartSidebarProps> = ({
+  isOpen,
+  onClose,
+  items,
   onUpdateQuantity,
-  onCheckout 
+  onCheckout
 }) => {
   const subtotal = items.reduce((acc, item) => acc + ((item.price || 0) * item.quantity), 0);
   const deliveryFee = 9.99;
@@ -24,11 +24,11 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
   return (
     <>
       {/* Backdrop */}
-      <div 
+      <div
         className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-50 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
         onClick={onClose}
       />
-      
+
       {/* Sidebar */}
       <div className={`fixed inset-y-0 right-0 w-full sm:w-96 bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="h-full flex flex-col">
@@ -54,18 +54,18 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
                   <img src={item.image} alt={item.name} className="w-20 h-20 rounded-xl object-cover bg-gray-100" />
                   <div className="flex-1">
                     <h4 className="font-semibold text-gray-900 text-sm line-clamp-1">{item.name}</h4>
-                    <p className="text-emerald-600 font-medium text-sm">{(item.price || 0).toFixed(2)} zł</p>
-                    
+                    <p className="text-sienna-600 font-medium text-sm">{(item.price || 0).toFixed(2)} zł</p>
+
                     <div className="flex items-center gap-3 mt-2">
-                      <button 
+                      <button
                         onClick={() => onUpdateQuantity(item.id, -1)}
                         className="w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-xs"
                       >
                         <i className="fas fa-minus"></i>
                       </button>
                       <span className="text-sm font-medium w-4 text-center">{item.quantity}</span>
-                      <button 
-                         onClick={() => onUpdateQuantity(item.id, 1)}
+                      <button
+                        onClick={() => onUpdateQuantity(item.id, 1)}
                         className="w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-xs"
                       >
                         <i className="fas fa-plus"></i>
@@ -94,10 +94,10 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
                   <span>{total.toFixed(2)} zł</span>
                 </div>
               </div>
-              
+
               <button
                 onClick={onCheckout}
-                className="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-600/20"
+                className="w-full bg-sienna-600 text-white py-4 rounded-xl font-bold hover:bg-sienna-700 transition-colors shadow-lg shadow-sienna-900/20"
               >
                 Do kasy
               </button>

@@ -2,134 +2,245 @@
 import { Product, Category } from './types';
 
 export const MENU_ITEMS: Product[] = [
-  // Sushi Rolls
+  // Chebureki
+  {
+    id: 'c1',
+    name: 'Czeburek Tradycyjny',
+    category: Category.CHEBUREKI,
+    price: 10.00,
+    calories: 350,
+    description: 'Chrupiący pieróg z nadzieniem z mięsa mielonego wołowo-wieprzowego, cebuli, soli i pieprzu.',
+    ingredients: ['Mięso wołowo-wieprzowe', 'Cebula', 'Sól', 'Pieprz', 'Ciasto'],
+    image: 'https://i.imgur.com/eVXA6y7.jpeg',
+    isSpicy: false
+  },
+  {
+    id: 'c2',
+    name: 'Czeburek z Twarogiem',
+    category: Category.CHEBUREKI,
+    price: 10.00,
+    calories: 320,
+    description: 'Delikatny pieróg z nadzieniem z twarogu, świeżego pomidora i koperku.',
+    ingredients: ['Twaróg', 'Świeży pomidor', 'Koperek', 'Ciasto'],
+    image: 'https://i.imgur.com/OBfuuCE.jpeg',
+    isSpicy: false,
+    isVegetarian: true
+  },
+  {
+    id: 'c3',
+    name: 'Czeburek z Warzywami',
+    category: Category.CHEBUREKI,
+    price: 10.00,
+    calories: 280,
+    description: 'Wegetariańska wersja z ziemniakami, cebulą i aromatycznymi przyprawami.',
+    ingredients: ['Ziemniaki', 'Cebula', 'Przyprawy', 'Ciasto'],
+    image: 'https://i.imgur.com/grrti6a.jpeg',
+    isSpicy: false,
+    isVegetarian: true
+  },
+
+  // Chinkali
+  {
+    id: 'ch1',
+    name: 'Chinkali',
+    category: Category.CHINKALI,
+    price: 20.00,
+    calories: 400,
+    description: 'Gruzińskie pierożki: mięso mielone wołowo-wieprzowe, cebula, przyprawy i soczysty bulion.',
+    ingredients: ['Mięso wołowo-wieprzowe', 'Cebula', 'Przyprawy', 'Ciasto'],
+    image: 'https://i.imgur.com/04TQ1pr.jpeg',
+    isSpicy: false
+  },
+
+  // Pierogi
+  {
+    id: 'p1',
+    name: 'Pierogi Tradycyjne',
+    category: Category.DUMPLINGS,
+    price: 15.00,
+    calories: 380,
+    description: 'Klasyczne pierogi z nadzieniem z ziemniaków, cebuli, soli i pieprzu.',
+    ingredients: ['Ziemniaki', 'Cebula', 'Sól', 'Pieprz', 'Ciasto'],
+    image: 'https://i.imgur.com/CZ0tqfn.jpeg',
+    isSpicy: false,
+    isVegetarian: true
+  },
+  {
+    id: 'p2',
+    name: 'Pierogi Słodkie',
+    category: Category.DUMPLINGS,
+    price: 15.00,
+    calories: 420,
+    description: 'Słodka wersja z twarogiem wiejskim, cukrem i wanilią.',
+    ingredients: ['Twaróg wiejski', 'Cukier', 'Wanilia', 'Ciasto'],
+    image: 'https://i.imgur.com/gKySyuI.jpeg',
+    isSpicy: false,
+    isVegetarian: true
+  },
+  {
+    id: 'p3',
+    name: 'Pierogi Mięsne',
+    category: Category.DUMPLINGS,
+    price: 15.00,
+    calories: 450,
+    description: 'Sycące pierogi z mięsem mielonym z łopatki, cebulą i przyprawami.',
+    ingredients: ['Mięso mielone łopatka', 'Cebula', 'Przyprawy', 'Ciasto'],
+    image: 'https://i.imgur.com/mMnPEBU.jpeg',
+    isSpicy: false
+  },
+
+  // Drinks
+  {
+    id: 'd1',
+    name: 'Herbata',
+    category: Category.DRINKS,
+    price: 5.00,
+    calories: 0,
+    description: 'Gorąca, aromatyczna herbata.',
+    ingredients: ['Woda', 'Herbata'],
+    image: 'https://i.imgur.com/Yc7OV2q.jpeg',
+    isSpicy: false,
+    isVegetarian: true
+  },
+  {
+    id: 'd2',
+    name: 'Kawa po turecku',
+    category: Category.DRINKS,
+    price: 8.00,
+    calories: 5,
+    description: 'Mocna kawa parzona w tradycyjny sposób.',
+    ingredients: ['Woda', 'Kawa'],
+    image: 'https://i.imgur.com/vqzcP6O.jpeg',
+    isSpicy: false,
+    isVegetarian: true
+  },
+  {
+    id: 'd3',
+    name: 'Kawa z mlekiem',
+    category: Category.DRINKS,
+    price: 10.00,
+    calories: 40,
+    description: 'Aromatyczna kawa z delikatnym mlekiem.',
+    ingredients: ['Woda', 'Kawa', 'Mleko'],
+    image: 'https://i.imgur.com/posqUaI.jpeg',
+    isSpicy: false,
+    isVegetarian: true
+  },
+  {
+    id: 'd4',
+    name: 'Kompot',
+    category: Category.DRINKS,
+    price: 5.00,
+    calories: 80,
+    description: 'Domowy kompot z owoców.',
+    ingredients: ['Woda', 'Owoce', 'Cukier'],
+    image: 'https://i.imgur.com/BXQNIlV.jpeg',
+    isSpicy: false,
+    isVegetarian: true
+  },
+  {
+    id: 'd5',
+    name: 'Uzwar',
+    category: Category.DRINKS,
+    price: 5.00,
+    calories: 90,
+    description: 'Tradycyjny napój z suszonych owoców.',
+    ingredients: ['Woda', 'Suszone owoce', 'Miód'],
+    image: 'https://i.imgur.com/LKEWLnh.jpeg',
+    isSpicy: false,
+    isVegetarian: true
+  },
+
+  // Zupy
   {
     id: 's1',
-    name: 'Philadelphia z Łososiem',
-    category: Category.SUSHI,
-    price: 38.00,
-    calories: 320,
-    description: 'Klasyczna rolka z aksamitnym serkiem, świeżym ogórkiem i dużą porcją norweskiego łososia.',
-    ingredients: ['Łosoś', 'Serek Philadelphia', 'Ogórek', 'Ryż', 'Nori'],
-    image: 'https://i.imgur.com/avvAzr1.jpg',
-    isSpicy: false
+    name: 'Barszcz',
+    category: Category.SOUPS,
+    price: 10.00,
+    calories: 180,
+    description: 'Tradycyjny barszcz czerwony z buraków, podawany z nutą śmietany.',
+    ingredients: ['Buraki', 'Wywar warzywny', 'Przyprawy', 'Śmietana'],
+    image: 'https://i.imgur.com/eE3aK0K.jpeg',
+    isSpicy: false,
+    isVegetarian: true
   },
   {
     id: 's2',
-    name: 'Pieczony z Łososiem i Mango',
-    category: Category.SUSHI,
-    price: 41.00,
-    calories: 410,
-    description: 'Ciepła rolka z łososiem pod pierzynką z sosu serowego, przełamana słodyczą mango.',
-    ingredients: ['Łosoś', 'Mango', 'Sos Serowy', 'Ryż', 'Nori', 'Sos Unagi'],
-    image: 'https://i.imgur.com/ZMLpjTC.jpg',
-    isSpicy: false
+    name: 'Charczo',
+    category: Category.SOUPS,
+    price: 10.00,
+    calories: 320,
+    description: 'Gęsta i aromatyczna gruzińska zupa z wołowiny, ryżu i orzechów włoskich.',
+    ingredients: ['Wołowina', 'Ryż', 'Orzechy włoskie', 'Przyprawy', 'Czosnek'],
+    image: 'https://i.imgur.com/L3nzvY5.jpeg',
+    isSpicy: true
   },
   {
     id: 's3',
-    name: 'Pieczony z Kurczakiem i Mango',
-    category: Category.SUSHI,
-    price: 40.00,
-    calories: 430,
-    description: 'Pieczona rolka z delikatnym kurczakiem, mango i sosem teriyaki.',
-    ingredients: ['Kurczak', 'Mango', 'Sos Serowy', 'Ryż', 'Nori', 'Teriyaki'],
-    image: 'https://i.imgur.com/ZMLpjTC.jpg',
-    isSpicy: false
-  },
-  {
-    id: 's4',
-    name: 'Tempura z Łososiem i Ogórkiem',
-    category: Category.SUSHI,
-    price: 43.00,
-    calories: 450,
-    description: 'Chrupiąca rolka w tempurze z łososiem i ogórkiem, idealne połączenie tekstur.',
-    ingredients: ['Łosoś', 'Ogórek', 'Tempura', 'Panko', 'Ryż', 'Nori'],
-    image: 'https://i.imgur.com/jo4w03o.jpeg',
-    isSpicy: false
-  },
-  {
-    id: 's5',
-    name: 'Tempura z Kurczakiem i Mango',
-    category: Category.SUSHI,
-    price: 41.00,
-    calories: 460,
-    description: 'Złocista tempura skrywająca kurczaka i mango. Chrupiąca i sycąca.',
-    ingredients: ['Kurczak', 'Mango', 'Tempura', 'Panko', 'Ryż', 'Nori'],
-    image: 'https://i.imgur.com/Rsskfq3.jpg',
+    name: 'Zupa z pulpecikami',
+    category: Category.SOUPS,
+    price: 10.00,
+    calories: 250,
+    description: 'Delikatny wywar z mięsnymi pulpecikami i warzywami.',
+    ingredients: ['Mięso mielone', 'Ziemniaki', 'Marchew', 'Zelenina'],
+    image: 'https://i.imgur.com/k4eZPcG.jpeg',
     isSpicy: false
   },
 
-  // Burgers
+  // Dania główne
   {
-    id: 'b1',
-    name: 'Burger Wołowy Klasyk',
-    category: Category.BURGERS,
-    price: 35.00,
-    calories: 650,
-    description: 'Soczysta wołowina 100%, świeże warzywa i nasz autorski sos w maślanej bułce.',
-    ingredients: ['Wołowina', 'Sałata', 'Pomidor', 'Czerwona Cebula', 'Ogórek Kiszony', 'Sos Autorski'],
-    image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=800&auto=format&fit=crop',
+    id: 'm1',
+    name: 'Pilaw',
+    category: Category.MAIN_DISHES,
+    price: 15.00,
+    calories: 550,
+    description: 'Tradycyjne danie z ryżu, soczystej wołowiny, marchwi i aromatycznych przypraw wschodnich.',
+    ingredients: ['Ryż', 'Wołowina', 'Marchew', 'Cebula', 'Przyprawy'],
+    image: 'https://i.imgur.com/ZdWsFHO.jpeg',
     isSpicy: false
   },
   {
-    id: 'b2',
-    name: 'Burger Crispy Chicken',
-    category: Category.BURGERS,
-    price: 32.00,
-    calories: 580,
-    description: 'Chrupiący kurczak w złocistej panierce z sosem majonezowym i świeżą sałatą.',
-    ingredients: ['Kurczak Panierowany', 'Sałata', 'Pomidor', 'Majonez', 'Bułka Brioche'],
-    image: 'https://i.imgur.com/IavBLF8.jpg',
-    isSpicy: false
-  },
-
-  // Shawarma
-  {
-    id: 'sh1',
-    name: 'Shoarma Drobiowa Fit',
-    category: Category.SHAWARMA,
-    price: 29.00,
-    calories: 420,
-    description: 'Lekka wersja klasyka. Grillowane kawałki kurczaka z dużą ilością warzyw w pełnoziarnistej tortilli.',
-    ingredients: ['Kurczak Grillowany', 'Kapusta Pekińska', 'Ogórek', 'Pomidor', 'Sos Jogurtowy', 'Tortilla Pełnoziarnista'],
-    image: 'https://i.imgur.com/uAdZoHz.jpeg',
-    isSpicy: false
-  },
-
-  // Salads
-  {
-    id: 'sa1',
-    name: 'Sałatka Warzywna Ogród',
-    category: Category.SALADS,
+    id: 'm2',
+    name: 'Ziemniaki po wiejsku z żeberkami',
+    category: Category.MAIN_DISHES,
     price: 25.00,
-    calories: 180,
-    description: 'Eksplozja witamin. Mieszanka chrupiących sałat i sezonowych warzyw.',
-    ingredients: ['Mix Sałat', 'Pomidorki Cherry', 'Ogórek', 'Papryka', 'Olej Oliwkowy'],
-    image: 'https://i.imgur.com/x6QzvGw.jpeg',
-    isVegetarian: true,
+    calories: 750,
+    description: 'Sycące danie z pieczonych ziemniaków i duszonych żeberek wieprzowych.',
+    ingredients: ['Ziemniaki', 'Żeberka wieprzowe', 'Cebula', 'Czosnek'],
+    image: 'https://i.imgur.com/1BAbrwk.jpeg',
     isSpicy: false
   },
   {
-    id: 'sa2',
-    name: 'Sałatka Cezar Królewska',
-    category: Category.SALADS,
-    price: 31.00,
-    calories: 350,
-    description: 'Klasyka gatunku. Grillowany kurczak, chrupiące grzanki, parmezan i oryginalny sos Cezar.',
-    ingredients: ['Sałata Rzymska', 'Kurczak Grillowany', 'Grzanki', 'Parmezan', 'Sos Cezar'],
-    image: 'https://i.imgur.com/vSvEnnC.jpeg',
+    id: 'm3',
+    name: 'Frytki z skrzydełkami',
+    category: Category.MAIN_DISHES,
+    price: 25.00,
+    calories: 680,
+    description: 'Chrupiące frytki podawane ze złocistymi skrzydełkami z kurczaka.',
+    ingredients: ['Frytki', 'Skrzydełka z kurczaka', 'Sos'],
+    image: 'https://i.imgur.com/GZrmxEG.jpeg',
     isSpicy: false
   },
   {
-    id: 'sa3',
-    name: 'Cytrusowe Przebudzenie',
-    category: Category.SALADS,
-    price: 27.00,
-    calories: 220,
-    description: 'Orzeźwiająca kompozycja z grejpfrutem, pomarańczą, awokado i prażonymi pestkami słonecznika.',
-    ingredients: ['Szpinak', 'Grejpfrut', 'Pomarańcza', 'Awokado', 'Słonecznik', 'Dressing Miodowo-Cytrynowy'],
-    image: 'https://i.imgur.com/6iyIoju.jpeg',
-    isVegetarian: true,
+    id: 'm4',
+    name: 'Szaszłyk',
+    category: Category.MAIN_DISHES,
+    price: 25.00,
+    calories: 600,
+    description: 'Soczyste kawałki mięsa grillowane na szpadzie, podawane z cebulą.',
+    ingredients: ['Mięso (wieprzowina/kurczak)', 'Cebula', 'Przyprawy'],
+    image: 'https://i.imgur.com/myYXkDE.jpeg',
+    isSpicy: false
+  },
+  {
+    id: 'm5',
+    name: 'Kasza gryczana z wątróbką',
+    category: Category.MAIN_DISHES,
+    price: 15.00,
+    calories: 420,
+    description: 'Pożywna kasza gryczana serwowana z duszoną wątróbką i cebulką.',
+    ingredients: ['Kasza gryczana', 'Wątróbka drobiowa', 'Cebula'],
+    image: 'https://i.imgur.com/IYxzbt6.jpeg',
     isSpicy: false
   }
 ];

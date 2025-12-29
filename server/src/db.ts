@@ -69,99 +69,204 @@ export const initDb = async () => {
     `);
     console.log('Menu items table initialized successfully');
 
-    // Seed initial menu items if table is empty
+    // Seed initial menu items if table is empty or missing new categories
+    const newCategoriesCheck = await pool.query("SELECT COUNT(*) FROM menu_items WHERE category IN ('Zupy', 'Dania główne')");
+    const hasNewCategories = parseInt(newCategoriesCheck.rows[0].count) > 0;
+    const oldItemsCheck = await pool.query("SELECT COUNT(*) FROM menu_items WHERE category IN ('Sushi', 'Burgery', 'Shoarma', 'Sałatki')");
+    const hasOldItems = parseInt(oldItemsCheck.rows[0].count) > 0;
     const menuCountResult = await pool.query('SELECT COUNT(*) FROM menu_items');
     const menuCount = parseInt(menuCountResult.rows[0].count);
-    console.log(`Current menu item count: ${menuCount}`);
-    
-    if (menuCount === 0) {
-      console.log('Table is empty, seeding initial items...');
+
+    if (menuCount === 0 || hasOldItems || !hasNewCategories) {
+      console.log('Seeding/Updating menu items...');
+      // Clear existing items if we are doing a full swap or adding missing sections
+      await pool.query('DELETE FROM menu_items');
+
       await pool.query(`
         INSERT INTO menu_items (name, description, image_url, calories, category, price, is_enabled)
         VALUES
           (
-            'Philadelphia z Łososiem',
-            'Klasyczna rolka z aksamitnym serkiem, świeżym ogórkiem i dużą porcją norweskiego łososia.',
-            'https://i.imgur.com/avvAzr1.jpg',
+            'Czeburek Tradycyjny',
+            'Chrupiący pieróg z nadzieniem z mięsa mielonego wołowo-wieprzowego, cebuli, soli i pieprzu.',
+            'https://i.imgur.com/eVXA6y7.jpeg',
+            350,
+            'Chebureki',
+            10.00,
+            TRUE
+          ),
+          (
+            'Czeburek z Twarogiem',
+            'Delikatny pieróg z nadzieniem z twarogu, świeżego pomidora i koperku.',
+            'https://i.imgur.com/OBfuuCE.jpeg',
             320,
-            'Sushi',
-            38.00,
+            'Chebureki',
+            10.00,
             TRUE
           ),
           (
-            'Pieczony z Łososiem i Mango',
-            'Ciepła rolka z łososiem pod pierzynką z sosu serowego, przełamana słodyczą mango.',
-            'https://i.imgur.com/ZMLpjTC.jpg',
-            410,
-            'Sushi',
-            41.00,
+            'Czeburek z Warzywami',
+            'Wegetariańska wersja z ziemniakami, cebulą i aromatycznymi przyprawami.',
+            'https://i.imgur.com/grrti6a.jpeg',
+            280,
+            'Chebureki',
+            10.00,
             TRUE
           ),
           (
-            'Pieczony z Kurczakiem i Mango',
-            'Pieczona rolka z delikatnym kurczakiem, mango i sosem teriyaki.',
-            'https://i.imgur.com/ZMLpjTC.jpg',
-            430,
-            'Sushi',
-            40.00,
+            'Chinkali',
+            'Gruzińskie pierożki: mięso mielone wołowo-wieprzowe, cebula, przyprawy i soczysty bulion.',
+            'https://i.imgur.com/04TQ1pr.jpeg',
+            400,
+            'Chinkali',
+            20.00,
             TRUE
           ),
           (
-            'Burger Wołowy Klasyk',
-            'Soczysta wołowina 100%, świeże warzywa i nasz autorski sos w maślanej bułce.',
-            'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=800&auto=format&fit=crop',
-            650,
-            'Burgery',
-            35.00,
+            'Pierogi Tradycyjne',
+            'Klasyczne pierogi z nadzieniem z ziemniaków, cebuli, soli i pieprzu.',
+            'https://i.imgur.com/CZ0tqfn.jpeg',
+            380,
+            'Pierogi',
+            15.00,
             TRUE
           ),
           (
-            'Burger Crispy Chicken',
-            'Chrupiący kurczak w złocistej panierce z sosem majonezowym i świeżą sałatą.',
-            'https://i.imgur.com/IavBLF8.jpg',
-            580,
-            'Burgery',
-            32.00,
-            TRUE
-          ),
-          (
-            'Shoarma Drobiowa Fit',
-            'Lekka wersja klasyka. Grillowane kawałki kurczaka z dużą ilością warzyw w pełnoziarnistej tortilli.',
-            'https://i.imgur.com/uAdZoHz.jpeg',
+            'Pierogi Słodkie',
+            'Słodka wersja z twarogiem wiejskim, cukrem i wanilią.',
+            'https://i.imgur.com/gKySyuI.jpeg',
             420,
-            'Shoarma',
-            29.00,
+            'Pierogi',
+            15.00,
             TRUE
           ),
           (
-            'Sałatka Warzywna Ogród',
-            'Eksplozja witamin. Mieszanka chrupiących sałat i sezonowych warzyw.',
-            'https://i.imgur.com/x6QzvGw.jpeg',
+            'Pierogi Mięsne',
+            'Sycące pierogi z mięsem mielonym z łopatki, cebulą i przyprawami.',
+            'https://i.imgur.com/mMnPEBU.jpeg',
+            450,
+            'Pierogi',
+            15.00,
+            TRUE
+          ),
+          (
+            'Herbata',
+            'Gorąca, aromatyczna herbata.',
+            'https://i.imgur.com/Yc7OV2q.jpeg',
+            0,
+            'Napoje',
+            5.00,
+            TRUE
+          ),
+          (
+            'Kawa po turecku',
+            'Mocna kawa parzona w tradycyjny sposób.',
+            'https://i.imgur.com/vqzcP6O.jpeg',
+            5,
+            'Napoje',
+            8.00,
+            TRUE
+          ),
+          (
+            'Kawa z mlekiem',
+            'Aromatyczna kawa z delikatnym mlekiem.',
+            'https://i.imgur.com/posqUaI.jpeg',
+            40,
+            'Napoje',
+            10.00,
+            TRUE
+          ),
+          (
+            'Kompot',
+            'Domowy kompot z owoców.',
+            'https://i.imgur.com/BXQNIlV.jpeg',
+            80,
+            'Napoje',
+            5.00,
+            TRUE
+          ),
+          (
+            'Uzwar',
+            'Tradycyjny napój z suszonych owoców.',
+            'https://i.imgur.com/LKEWLnh.jpeg',
+            90,
+            'Napoje',
+            5.00,
+            TRUE
+          ),
+          (
+            'Barszcz',
+            'Tradycyjny barszcz czerwony z buraków, podawany z nutą śmietany.',
+            'https://i.imgur.com/eE3aK0K.jpeg',
             180,
-            'Sałatki',
+            'Zupy',
+            10.00,
+            TRUE
+          ),
+          (
+            'Charczo',
+            'Gęsta i aromatyczna gruzińska zupa z wołowiny, ryżu i orzechów włoskich.',
+            'https://i.imgur.com/L3nzvY5.jpeg',
+            320,
+            'Zupy',
+            10.00,
+            TRUE
+          ),
+          (
+            'Zupa z pulpecikami',
+            'Delikatny wywar z mięsnymi pulpecikami i warzywami.',
+            'https://i.imgur.com/k4eZPcG.jpeg',
+            250,
+            'Zupy',
+            10.00,
+            TRUE
+          ),
+          (
+            'Pilaw',
+            'Tradycyjne danie z ryżu, soczystej wołowiny, marchwi i aromatycznych przypraw wschodnich.',
+            'https://i.imgur.com/ZdWsFHO.jpeg',
+            550,
+            'Dania główne',
+            15.00,
+            TRUE
+          ),
+          (
+            'Ziemniaki po wiejsku z żeberkami',
+            'Sycące danie z pieczonych ziemniaków i duszonych żeberek wieprzowych.',
+            'https://i.imgur.com/1BAbrwk.jpeg',
+            750,
+            'Dania główne',
             25.00,
             TRUE
           ),
           (
-            'Sałatka Cezar Królewska',
-            'Klasyka gatunku. Grillowany kurczak, chrupiące grzanki, parmezan i oryginalny sos Cezar.',
-            'https://i.imgur.com/vSvEnnC.jpeg',
-            350,
-            'Sałatki',
-            31.00,
+            'Frytki z skrzydełkami',
+            'Chrupiący frytki podawane ze złocistymi skrzydełkami z kurczaka.',
+            'https://i.imgur.com/GZrmxEG.jpeg',
+            680,
+            'Dania główne',
+            25.00,
             TRUE
           ),
           (
-            'Cytrusowe Przebudzenie',
-            'Orzeźwiająca kompozycja z grejpfrutem, pomarańczą, awokado i prażonymi pestkami słonecznika.',
-            'https://i.imgur.com/6iyIoju.jpeg',
-            220,
-            'Sałatki',
-            27.00,
+            'Szaszłyk',
+            'Soczyste kawałki mięsa grillowane na szpadzie, podawane z cebulą.',
+            'https://i.imgur.com/myYXkDE.jpeg',
+            600,
+            'Dania główne',
+            25.00,
+            TRUE
+          ),
+          (
+            'Kasza gryczana z wątróbką',
+            'Pożywna kasza gryczana serwowana z duszoną wątróbką i cebulką.',
+            'https://i.imgur.com/IYxzbt6.jpeg',
+            420,
+            'Dania główne',
+            15.00,
             TRUE
           )
       `);
-      console.log('Seeded initial menu items');
+      console.log('Seeded updated menu items');
     }
 
     // Create integrations table
@@ -197,8 +302,8 @@ export const initDb = async () => {
       await pool.query(
         'INSERT INTO integrations (platform_name, platform_url, api_key, restaurant_external_id, restaurant_address, restaurant_phone, currency) VALUES ($1, $2, $3, $4, $5, $6, $7)',
         [
-          'External Food Platform', 
-          'http://host.docker.internal:3001/api/external-menu', 
+          'External Food Platform',
+          'http://host.docker.internal:3001/api/external-menu',
           'da079e38fcb44b6d86ad08ac3ee33a42',
           'partner-123',
           '1234 Main Street, Fez, Morroko',
