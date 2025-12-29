@@ -43,7 +43,7 @@ export const Header: React.FC<HeaderProps> = ({ cartCount, onOpenCart, onCategor
 
             <div className="flex flex-col -space-y-1">
               <span className="font-bold text-xl tracking-[0.1em] text-gray-900 leading-none">
-                SIVIK
+                Zakątek Smaków
               </span>
               <span className="text-[10px] text-gray-500 font-script ml-0.5">
                 Restauracja
@@ -51,9 +51,8 @@ export const Header: React.FC<HeaderProps> = ({ cartCount, onOpenCart, onCategor
             </div>
           </div>
 
-          {/* Nav (Desktop) */}
           <nav className="hidden md:flex space-x-8">
-            {[Category.ALL, Category.SUSHI, Category.BURGERS, Category.SHAWARMA, Category.SALADS].map((item) => (
+            {Object.values(Category).map((item) => (
               <button
                 key={item}
                 onClick={() => handleNavClick(item)}

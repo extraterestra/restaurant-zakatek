@@ -1,3 +1,4 @@
+version: '2.4'
 services:
   # PostgreSQL Database
   postgres:
@@ -46,6 +47,7 @@ services:
       dockerfile: Dockerfile.production
       args:
         - VITE_API_URL=http://localhost:5001
+        - GEMINI_API_KEY=${GEMINI_API_KEY}
     container_name: restaurant-frontend
     environment:
       - VITE_API_URL=http://localhost:5001

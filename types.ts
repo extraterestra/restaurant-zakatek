@@ -1,10 +1,12 @@
 
 export enum Category {
   ALL = 'Wszystkie',
-  SUSHI = 'Sushi',
-  BURGERS = 'Burgery',
-  SHAWARMA = 'Shoarma',
-  SALADS = 'Sałatki'
+  CHEBUREKI = 'Chebureki',
+  CHINKALI = 'Chinkali',
+  DUMPLINGS = 'Pierogi',
+  DRINKS = 'Napoje',
+  SOUPS = 'Zupy',
+  MAIN_DISHES = 'Dania główne'
 }
 
 export interface Product {

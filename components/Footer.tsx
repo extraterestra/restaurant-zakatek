@@ -34,22 +34,22 @@ export const Footer: React.FC<FooterProps> = ({ onCategorySelect, onNavigate }) 
               </svg>
             </div>
             <div className="flex flex-col -space-y-1">
-              <span className="block font-bold text-xl tracking-[0.1em] text-white leading-none">SIVIK</span>
+              <span className="block font-bold text-xl tracking-[0.1em] text-white leading-none">Zakątek Smaków</span>
               <span className="block text-[10px] text-gray-400 font-script ml-0.5">Restauracja</span>
             </div>
           </div>
           <p className="text-sm text-gray-400 leading-relaxed">
-            Autentyczne smaki, świeże składniki i pasja do zdrowego życia. SIVIK przenosi restauracyjne doświadczenie prosto do Twojego domu.
+            Autentyczne smaki, świeże składniki i pasja do tradycyjnego gotowania. Zakątek Smaków to smak prawdziwego domu, dostarczany prosto pod Twoje drzwi.
           </p>
         </div>
 
         <div>
           <h4 className="text-white font-bold mb-4 uppercase tracking-wider text-sm">Menu</h4>
           <ul className="space-y-2 text-sm text-gray-400">
-            <li><a href="#" onClick={(e) => handleCategoryClick(e, Category.SUSHI)} className="hover:text-emerald-500 transition-colors">Sushi</a></li>
-            <li><a href="#" onClick={(e) => handleCategoryClick(e, Category.BURGERS)} className="hover:text-emerald-500 transition-colors">Burgery</a></li>
-            <li><a href="#" onClick={(e) => handleCategoryClick(e, Category.SHAWARMA)} className="hover:text-emerald-500 transition-colors">Shoarma</a></li>
-            <li><a href="#" onClick={(e) => handleCategoryClick(e, Category.SALADS)} className="hover:text-emerald-500 transition-colors">Sałatki</a></li>
+            <li><a href="#" onClick={(e) => handleCategoryClick(e, Category.CHEBUREKI)} className="hover:text-emerald-500 transition-colors">Chebureki</a></li>
+            <li><a href="#" onClick={(e) => handleCategoryClick(e, Category.CHINKALI)} className="hover:text-emerald-500 transition-colors">Chinkali</a></li>
+            <li><a href="#" onClick={(e) => handleCategoryClick(e, Category.DUMPLINGS)} className="hover:text-emerald-500 transition-colors">Pierogi</a></li>
+            <li><a href="#" onClick={(e) => handleCategoryClick(e, Category.DRINKS)} className="hover:text-emerald-500 transition-colors">Napoje</a></li>
           </ul>
         </div>
 
@@ -66,6 +66,7 @@ export const Footer: React.FC<FooterProps> = ({ onCategorySelect, onNavigate }) 
         <div>
           <h4 className="text-white font-bold mb-4 uppercase tracking-wider text-sm">Kontakt</h4>
           <div className="space-y-3 text-sm text-gray-400">
+            <p className="flex items-center"><i className="fas fa-map-marker-alt mr-3 text-emerald-500"></i> Jana Pawła II, 34-700 Rabka-Zdrój</p>
             <p className="flex items-center"><i className="fas fa-phone mr-3 text-emerald-500"></i> +48 532136020</p>
             <p className="flex items-center"><i className="fas fa-envelope mr-3 text-emerald-500"></i> sivikrestaurant@gmail.com</p>
             <div className="flex gap-4 mt-6">
@@ -83,7 +84,7 @@ export const Footer: React.FC<FooterProps> = ({ onCategorySelect, onNavigate }) 
         </div>
       </div>
       <div className="max-w-7xl mx-auto px-4 mt-12 pt-8 border-t border-gray-800 text-center text-xs text-gray-600">
-        &copy; 2025 SIVIK Restauracja. Wszelkie prawa zastrzeżone.
+        &copy; 2025 Zakątek Smaków. Wszelkie prawa zastrzeżone.
       </div>
     </footer>
   );
