@@ -22,7 +22,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
     phone: '',
     deliveryDate: '',
     deliveryTime: '10:00',
-    paymentMethod: 'Karta'
+    paymentMethod: 'Gotówka przy odbiorze'
   });
 
   // Calculate date constraints
@@ -40,7 +40,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
         phone: '',
         deliveryDate: '',
         deliveryTime: '10:00',
-        paymentMethod: 'Karta'
+        paymentMethod: 'Gotówka przy odbiorze'
       });
     }
   }, [isOpen]);
@@ -221,9 +221,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                       onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
                       className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 outline-none"
                     >
-                      <option>Karta</option>
                       <option>Gotówka przy odbiorze</option>
-                      <option>BLIK</option>
+                      <option>Przelew na telefon</option>
                     </select>
                   </div>
                 </div>
