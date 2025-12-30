@@ -15,6 +15,7 @@ interface CheckoutModalProps {
 export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onClearCart, total, items }) => {
   const [step, setStep] = useState(1);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [orderId, setOrderId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -33,6 +34,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
     if (isOpen) {
       setStep(1);
       setIsSuccess(false);
+      setOrderId(null);
       setError(null);
       setFormData({
         name: '',
@@ -94,6 +96,13 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
         throw new Error('Failed to create order');
       }
 
+      const data = await response.json();
+      console.log('Order created successfully:', data);
+      if (data && data.id) {
+        setOrderId(data.id);
+      } else {
+        console.warn('Order created but no ID returned from backend');
+      }
       onClearCart();
       setIsSuccess(true);
     } catch (err) {
@@ -114,6 +123,12 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
               <i className="fas fa-check"></i>
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Zamówienie przyjęte!</h2>
+            <div className="my-4 p-3 bg-sienna-50 rounded-xl border border-sienna-100">
+              <p className="text-gray-600 text-sm mb-1 uppercase tracking-wider font-bold">Numer zamówienia</p>
+              <p className="text-3xl font-black text-sienna-600">
+                #{orderId || '...'}
+              </p>
+            </div>
             <p className="text-gray-500 mb-8">Twoje zamówienie zostało zaplanowane. Dziękujemy!</p>
             <button
               onClick={onClose}
