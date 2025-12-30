@@ -257,10 +257,26 @@ function App() {
       );
     }
 
-    // Redirect to login if not authenticated
-    if (!authSession?.isAuthenticated) {
-      window.location.href = '/admin';
-      return null;
+    // Check if user is admin or has permission
+    const user = authSession.user;
+    const canManagePayments = user?.role === 'admin' || user?.can_manage_payments || (user as any)?.canManagePayments;
+
+    if (!canManagePayments) {
+      return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <i className="fas fa-exclamation-triangle text-5xl text-red-500 mb-4"></i>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
+            <p className="text-gray-600 mb-6">Only admins or authorized users can manage payment configuration.</p>
+            <a
+              href="/admin"
+              className="bg-sienna-600 hover:bg-sienna-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors inline-block"
+            >
+              Back to Admin Dashboard
+            </a>
+          </div>
+        </div>
+      );
     }
 
     return <PaymentConfiguration />;

@@ -33,6 +33,7 @@ export interface User {
   role: 'admin' | 'read_only' | 'write';
   can_manage_users: boolean;
   can_manage_integrations: boolean;
+  can_manage_payments: boolean;
   created_at: string;
   updated_at: string;
 }

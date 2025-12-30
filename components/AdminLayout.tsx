@@ -36,6 +36,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ active, children }) =>
   const user = session?.user;
   const canManageUsers = user?.role === 'admin' || user?.can_manage_users || (user as any)?.canManageUsers;
   const canManageIntegrations = user?.role === 'admin' || user?.can_manage_integrations || (user as any)?.canManageIntegrations;
+  const canManagePayments = user?.role === 'admin' || user?.can_manage_payments || (user as any)?.canManagePayments;
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -85,13 +86,15 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ active, children }) =>
               <span>Integration</span>
             </a>
           )}
-          <a
-            href="/admin/payments"
-            className={navItemClasses(active === 'payments')}
-          >
-            <i className="fas fa-credit-card w-4"></i>
-            <span>Payment Configuration</span>
-          </a>
+          {canManagePayments && (
+            <a
+              href="/admin/payments"
+              className={navItemClasses(active === 'payments')}
+            >
+              <i className="fas fa-credit-card w-4"></i>
+              <span>Payment Configuration</span>
+            </a>
+          )}
         </nav>
 
         <div className="px-4 py-3 border-t border-gray-800 text-xs text-gray-500">

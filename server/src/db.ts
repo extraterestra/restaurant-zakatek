@@ -39,6 +39,7 @@ export const initDb = async () => {
         role VARCHAR(50) NOT NULL CHECK (role IN ('admin', 'read_only', 'write')),
         can_manage_users BOOLEAN DEFAULT FALSE,
         can_manage_integrations BOOLEAN DEFAULT FALSE,
+        can_manage_payments BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -49,6 +50,7 @@ export const initDb = async () => {
     await pool.query(`
       ALTER TABLE users ADD COLUMN IF NOT EXISTS can_manage_users BOOLEAN DEFAULT FALSE;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS can_manage_integrations BOOLEAN DEFAULT FALSE;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS can_manage_payments BOOLEAN DEFAULT FALSE;
     `);
     console.log('Users table columns verified');
 
@@ -319,8 +321,8 @@ export const initDb = async () => {
     if (parseInt(userCount.rows[0].count) === 0) {
       const passwordHash = await bcrypt.hash('admin0617', 10);
       await pool.query(
-        'INSERT INTO users (username, password_hash, role, can_manage_users, can_manage_integrations) VALUES ($1, $2, $3, $4, $5)',
-        ['admin', passwordHash, 'admin', true, true]
+        'INSERT INTO users (username, password_hash, role, can_manage_users, can_manage_integrations, can_manage_payments) VALUES ($1, $2, $3, $4, $5, $6)',
+        ['admin', passwordHash, 'admin', true, true, true]
       );
       console.log('Default admin user created successfully');
     }

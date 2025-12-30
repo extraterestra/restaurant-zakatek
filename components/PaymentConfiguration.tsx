@@ -39,7 +39,7 @@ export const PaymentConfiguration: React.FC = () => {
             const data = await response.json();
             setSession(data);
 
-            if (!data.isAuthenticated) {
+            if (!data.isAuthenticated || (data.user.role !== 'admin' && !data.user.can_manage_payments)) {
                 window.location.href = '/admin';
             }
         } catch (err) {
