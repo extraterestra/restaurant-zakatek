@@ -119,9 +119,9 @@ docker-compose up -d
 ### 🌐 Production (Railway)
 
 **Live Application:**
-- **Frontend**: https://frontend-prod-production-8320.up.railway.app
+- **Frontend**: https://restaurant-zakatek.up.railway.app
 - **Backend API**: https://frontend-prod-production-8320.up.railway.app/api/orders
-- **Admin Panel**: https://frontend-prod-production-8320.up.railway.app/admin
+- **Admin Panel**: https://restaurant-zakatek.up.railway.app/admin
 - **Database**: PostgreSQL (Railway managed)
 - **Branch**: `main` (auto-deploys on push)
 
