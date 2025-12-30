@@ -237,7 +237,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                       className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 outline-none"
                     >
                       <option>Gotówka przy odbiorze</option>
-                      <option>Przelew na telefon</option>
+                      <option>Przelew na telefon +48 570 719 819</option>
                     </select>
                   </div>
                 </div>
