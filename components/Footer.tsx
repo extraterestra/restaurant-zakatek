@@ -73,13 +73,9 @@ export const Footer: React.FC<FooterProps> = ({ onCategorySelect, onNavigate }) 
             <p className="flex items-center"><i className="fas fa-envelope mr-3 text-sienna-500"></i> zakantek.smakow.cafe@gmail.com</p>
             <p className="flex items-center"><i className="fas fa-clock mr-3 text-sienna-500"></i> Codziennie: 10:00 - 17:00</p>
             <div className="flex gap-4 mt-6">
-              <a href="#" className="w-8 h-8 rounded-full bg-sienna-900 flex items-center justify-center hover:bg-sienna-600 hover:text-cream-100 transition-all">
-                <i className="fab fa-instagram"></i>
-              </a>
-              <a href="#" className="w-8 h-8 rounded-full bg-sienna-900 flex items-center justify-center hover:bg-sienna-600 hover:text-cream-100 transition-all">
-                <i className="fab fa-twitter"></i>
-              </a>
-              <a href="#" className="w-8 h-8 rounded-full bg-sienna-900 flex items-center justify-center hover:bg-sienna-600 hover:text-cream-100 transition-all">
+
+
+              <a href="https://www.facebook.com/share/17gy7GrBaA/" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-sienna-900 flex items-center justify-center hover:bg-sienna-600 hover:text-cream-100 transition-all">
                 <i className="fab fa-facebook-f"></i>
               </a>
             </div>
