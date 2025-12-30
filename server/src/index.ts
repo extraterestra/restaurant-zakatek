@@ -725,6 +725,52 @@ app.post('/api/admin/integration/sync', requireIntegrationManagement, async (_re
   }
 });
 
+// ============ Payment Configuration Endpoints ============
+
+// Public: get enabled payment methods
+app.get('/api/payment-methods', async (_req, res) => {
+  try {
+    const result = await pool.query('SELECT name, display_name, is_enabled FROM payment_methods WHERE is_enabled = TRUE');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching payment methods:', error);
+    res.status(500).json({ error: 'Failed to fetch payment methods' });
+  }
+});
+
+// Admin: get all payment methods
+app.get('/api/admin/payment-methods', requireAuth, async (_req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM payment_methods ORDER BY id');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching admin payment methods:', error);
+    res.status(500).json({ error: 'Failed to fetch payment methods' });
+  }
+});
+
+// Admin: toggle payment method
+app.patch('/api/admin/payment-methods/:name', requireAuth, async (req, res) => {
+  try {
+    const { name } = req.params;
+    const { isEnabled } = req.body;
+
+    const result = await pool.query(
+      'UPDATE payment_methods SET is_enabled = $1, updated_at = CURRENT_TIMESTAMP WHERE name = $2 RETURNING *',
+      [isEnabled, name]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Payment method not found' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error updating payment method:', error);
+    res.status(500).json({ error: 'Failed to update payment method' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

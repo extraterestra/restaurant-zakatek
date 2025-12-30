@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { CartItem } from '../types';
+import { CartItem, PaymentMethod } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
@@ -17,6 +17,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
   const [isSuccess, setIsSuccess] = useState(false);
   const [orderId, setOrderId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [formData, setFormData] = useState({
     name: '',
     address: '',
@@ -31,21 +32,41 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
   const minDate = today.toISOString().split('T')[0];
 
   useEffect(() => {
+    const fetchPaymentMethods = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/payment-methods`);
+        if (response.ok) {
+          const data = await response.json();
+          setPaymentMethods(data);
+          // Set default payment method if items exist
+          if (data.length > 0) {
+            setFormData(prev => ({ ...prev, paymentMethod: data[0].display_name }));
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching payment methods:', err);
+      }
+    };
+    fetchPaymentMethods();
+  }, []);
+
+  useEffect(() => {
     if (isOpen) {
       setStep(1);
       setIsSuccess(false);
       setOrderId(null);
       setError(null);
-      setFormData({
+      setFormData(prev => ({
+        ...prev,
         name: '',
         address: '',
         phone: '',
         deliveryDate: '',
         deliveryTime: '10:00',
-        paymentMethod: 'Gotówka przy odbiorze'
-      });
+        paymentMethod: paymentMethods.length > 0 ? paymentMethods[0].display_name : 'Gotówka przy odbiorze'
+      }));
     }
-  }, [isOpen]);
+  }, [isOpen, paymentMethods]);
 
   if (!isOpen) return null;
 
@@ -236,8 +257,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                       onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
                       className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 outline-none"
                     >
-                      <option>Gotówka przy odbiorze</option>
-                      <option>Przelew na telefon +48 570 719 819</option>
+                      {paymentMethods.map((method) => (
+                        <option key={method.name} value={method.display_name}>
+                          {method.display_name}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>

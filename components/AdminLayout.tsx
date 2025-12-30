@@ -4,7 +4,7 @@ import { AuthSession } from '../types';
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
 interface AdminLayoutProps {
-  active: 'orders' | 'users' | 'food' | 'integration';
+  active: 'orders' | 'users' | 'food' | 'integration' | 'payments';
   children: React.ReactNode;
 }
 
@@ -85,6 +85,13 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ active, children }) =>
               <span>Integration</span>
             </a>
           )}
+          <a
+            href="/admin/payments"
+            className={navItemClasses(active === 'payments')}
+          >
+            <i className="fas fa-credit-card w-4"></i>
+            <span>Payment Configuration</span>
+          </a>
         </nav>
 
         <div className="px-4 py-3 border-t border-gray-800 text-xs text-gray-500">

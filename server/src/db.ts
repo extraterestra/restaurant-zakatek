@@ -324,6 +324,36 @@ export const initDb = async () => {
       );
       console.log('Default admin user created successfully');
     }
+
+    // Create payment_methods table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS payment_methods (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(50) UNIQUE NOT NULL,
+        display_name VARCHAR(100) NOT NULL,
+        is_enabled BOOLEAN DEFAULT TRUE,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('Payment methods table initialized successfully');
+
+    // Seed default payment methods
+    const pmCount = await pool.query('SELECT COUNT(*) FROM payment_methods');
+    if (parseInt(pmCount.rows[0].count) === 0) {
+      const methods = [
+        ['card', 'Karta', true],
+        ['blik', 'BLIK', true],
+        ['transfer', 'Przelew na telefon +48 570 719 819', true],
+        ['cash', 'Gotówka przy odbiorze', true]
+      ];
+      for (const [name, display, enabled] of methods) {
+        await pool.query(
+          'INSERT INTO payment_methods (name, display_name, is_enabled) VALUES ($1, $2, $3)',
+          [name, display, enabled]
+        );
+      }
+      console.log('Default payment methods seeded');
+    }
   } catch (error) {
     console.error('Error initializing database:', error);
     throw error;
