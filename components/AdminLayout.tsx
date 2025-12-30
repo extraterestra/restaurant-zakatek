@@ -4,7 +4,7 @@ import { AuthSession } from '../types';
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
 interface AdminLayoutProps {
-  active: 'orders' | 'users' | 'food' | 'integration';
+  active: 'orders' | 'users' | 'food' | 'integration' | 'payments';
   children: React.ReactNode;
 }
 
@@ -36,6 +36,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ active, children }) =>
   const user = session?.user;
   const canManageUsers = user?.role === 'admin' || user?.can_manage_users || (user as any)?.canManageUsers;
   const canManageIntegrations = user?.role === 'admin' || user?.can_manage_integrations || (user as any)?.canManageIntegrations;
+  const canManagePayments = user?.role === 'admin' || user?.can_manage_payments || (user as any)?.canManagePayments;
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -83,6 +84,15 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ active, children }) =>
             >
               <i className="fas fa-network-wired w-4"></i>
               <span>Integration</span>
+            </a>
+          )}
+          {canManagePayments && (
+            <a
+              href="/admin/payments"
+              className={navItemClasses(active === 'payments')}
+            >
+              <i className="fas fa-credit-card w-4"></i>
+              <span>Payment Configuration</span>
             </a>
           )}
         </nav>

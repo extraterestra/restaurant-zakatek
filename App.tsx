@@ -12,6 +12,7 @@ import { Login } from './components/Login';
 import { UserManagement } from './components/UserManagement';
 import { FoodConfiguration } from './components/FoodConfiguration';
 import { Integration } from './components/Integration';
+import { PaymentConfiguration } from './components/PaymentConfiguration';
 import { ProductModal } from './components/ProductModal';
 import { MENU_ITEMS } from './constants';
 import { CartItem, Product, Category, AuthSession } from './types';
@@ -38,7 +39,7 @@ function App() {
   };
 
   const isAdminRoute = (path: string) => {
-    return path === '/admin' || path === '/admin/users' || path === '/admin/food' || path === '/admin/integration';
+    return path === '/admin' || path === '/admin/users' || path === '/admin/food' || path === '/admin/integration' || path === '/admin/payments';
   };
 
   const [currentPath, setCurrentPath] = useState(getPath());
@@ -240,6 +241,45 @@ function App() {
     }
 
     return <Integration />;
+  }
+
+  // Handle payment configuration route
+  if (currentPath === '/admin/payments' || window.location.pathname === '/admin/payments') {
+    // Show loading while checking auth
+    if (authLoading) {
+      return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <i className="fas fa-circle-notch fa-spin text-4xl text-sienna-500 mb-4"></i>
+            <p className="text-gray-600">Loading...</p>
+          </div>
+        </div>
+      );
+    }
+
+    // Check if user is admin or has permission
+    const user = authSession.user;
+    const canManagePayments = user?.role === 'admin' || user?.can_manage_payments || (user as any)?.canManagePayments;
+
+    if (!canManagePayments) {
+      return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <i className="fas fa-exclamation-triangle text-5xl text-red-500 mb-4"></i>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
+            <p className="text-gray-600 mb-6">Only admins or authorized users can manage payment configuration.</p>
+            <a
+              href="/admin"
+              className="bg-sienna-600 hover:bg-sienna-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors inline-block"
+            >
+              Back to Admin Dashboard
+            </a>
+          </div>
+        </div>
+      );
+    }
+
+    return <PaymentConfiguration />;
   }
 
   const [activeCategory, setActiveCategory] = useState<string>(Category.ALL);

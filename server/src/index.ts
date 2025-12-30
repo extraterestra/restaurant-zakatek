@@ -66,7 +66,7 @@ const refreshSession = async (req: express.Request, _res: express.Response, next
   if (req.session.userId) {
     try {
       const result = await pool.query(
-        'SELECT id, username, role, can_manage_users, can_manage_integrations FROM users WHERE id = $1',
+        'SELECT id, username, role, can_manage_users, can_manage_integrations, can_manage_payments FROM users WHERE id = $1',
         [req.session.userId]
       );
       if (result.rows.length > 0) {
@@ -77,6 +77,7 @@ const refreshSession = async (req: express.Request, _res: express.Response, next
         req.session.role = user.role;
         req.session.canManageUsers = user.can_manage_users;
         req.session.canManageIntegrations = user.can_manage_integrations;
+        req.session.canManagePayments = user.can_manage_payments;
         
         // Ensure session is saved if modified
         req.session.save((err) => {
@@ -102,6 +103,7 @@ declare module 'express-session' {
     role: string;
     canManageUsers: boolean;
     canManageIntegrations: boolean;
+    canManagePayments: boolean;
   }
 }
 
@@ -131,6 +133,17 @@ const requireIntegrationManagement = (req: express.Request, res: express.Respons
   }
   if (req.session.role !== 'admin' && !req.session.canManageIntegrations) {
     return res.status(403).json({ error: 'Integration access required' });
+  }
+  next();
+};
+
+// Payment-only middleware (role 'admin' or specific permission)
+const requirePaymentManagement = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  if (req.session.role !== 'admin' && !req.session.canManagePayments) {
+    return res.status(403).json({ error: 'Payment management access required' });
   }
   next();
 };
@@ -191,6 +204,7 @@ app.post('/api/auth/login', async (req, res) => {
     req.session.role = user.role;
     req.session.canManageUsers = user.can_manage_users;
     req.session.canManageIntegrations = user.can_manage_integrations;
+    req.session.canManagePayments = user.can_manage_payments;
 
     console.log('Login successful for:', username);
     console.log('Session ID:', req.sessionID);
@@ -199,7 +213,8 @@ app.post('/api/auth/login', async (req, res) => {
       username: req.session.username,
       role: req.session.role,
       canManageUsers: req.session.canManageUsers,
-      canManageIntegrations: req.session.canManageIntegrations
+      canManageIntegrations: req.session.canManageIntegrations,
+      canManagePayments: req.session.canManagePayments
     });
 
     // Save session before sending response
@@ -214,7 +229,8 @@ app.post('/api/auth/login', async (req, res) => {
         username: user.username,
         role: user.role,
         can_manage_users: user.can_manage_users,
-        can_manage_integrations: user.can_manage_integrations
+        can_manage_integrations: user.can_manage_integrations,
+        can_manage_payments: user.can_manage_payments
       });
     });
   } catch (error) {
@@ -239,7 +255,7 @@ app.get('/api/auth/session', async (req, res) => {
     try {
       // Fetch latest user data from DB to be 100% sure
       const result = await pool.query(
-        'SELECT id, username, role, can_manage_users, can_manage_integrations FROM users WHERE id = $1',
+        'SELECT id, username, role, can_manage_users, can_manage_integrations, can_manage_payments FROM users WHERE id = $1',
         [req.session.userId]
       );
 
@@ -254,6 +270,7 @@ app.get('/api/auth/session', async (req, res) => {
       req.session.role = user.role;
       req.session.canManageUsers = user.can_manage_users;
       req.session.canManageIntegrations = user.can_manage_integrations;
+      req.session.canManagePayments = user.can_manage_payments;
 
       console.log(`[Auth Session Check] User: ${user.username}`);
 
@@ -264,7 +281,8 @@ app.get('/api/auth/session', async (req, res) => {
           username: user.username,
           role: user.role,
           can_manage_users: user.can_manage_users,
-          can_manage_integrations: user.can_manage_integrations
+          can_manage_integrations: user.can_manage_integrations,
+          can_manage_payments: user.can_manage_payments
         }
       });
     } catch (error) {
@@ -282,7 +300,7 @@ app.get('/api/auth/session', async (req, res) => {
 app.get('/api/users', requireUserManagement, async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, username, role, can_manage_users, can_manage_integrations, created_at, updated_at FROM users ORDER BY created_at DESC'
+      'SELECT id, username, role, can_manage_users, can_manage_integrations, can_manage_payments, created_at, updated_at FROM users ORDER BY created_at DESC'
     );
     res.json(result.rows);
   } catch (error) {
@@ -294,7 +312,7 @@ app.get('/api/users', requireUserManagement, async (req, res) => {
 // Create user
 app.post('/api/users', requireUserManagement, async (req, res) => {
   try {
-    const { username, password, role, canManageUsers, canManageIntegrations } = req.body;
+    const { username, password, role, canManageUsers, canManageIntegrations, canManagePayments } = req.body;
 
     if (!username || !password || !role) {
       return res.status(400).json({ error: 'Username, password, and role required' });
@@ -307,8 +325,8 @@ app.post('/api/users', requireUserManagement, async (req, res) => {
     const passwordHash = await bcrypt.hash(password, 10);
 
     const result = await pool.query(
-      'INSERT INTO users (username, password_hash, role, can_manage_users, can_manage_integrations) VALUES ($1, $2, $3, $4, $5) RETURNING id, username, role, can_manage_users, can_manage_integrations, created_at, updated_at',
-      [username, passwordHash, role, canManageUsers ?? false, canManageIntegrations ?? false]
+      'INSERT INTO users (username, password_hash, role, can_manage_users, can_manage_integrations, can_manage_payments) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, username, role, can_manage_users, can_manage_integrations, can_manage_payments, created_at, updated_at',
+      [username, passwordHash, role, canManageUsers ?? false, canManageIntegrations ?? false, canManagePayments ?? false]
     );
 
     res.status(201).json(result.rows[0]);
@@ -325,7 +343,7 @@ app.post('/api/users', requireUserManagement, async (req, res) => {
 app.patch('/api/users/:id', requireUserManagement, async (req, res) => {
   try {
     const { id } = req.params;
-    const { username, password, role, canManageUsers, canManageIntegrations } = req.body;
+    const { username, password, role, canManageUsers, canManageIntegrations, canManagePayments } = req.body;
 
     let query = 'UPDATE users SET updated_at = CURRENT_TIMESTAMP';
     const values: any[] = [];
@@ -365,7 +383,13 @@ app.patch('/api/users/:id', requireUserManagement, async (req, res) => {
       paramCount++;
     }
 
-    query += ` WHERE id = $${paramCount} RETURNING id, username, role, can_manage_users, can_manage_integrations, created_at, updated_at`;
+    if (canManagePayments !== undefined) {
+      query += `, can_manage_payments = $${paramCount}`;
+      values.push(canManagePayments);
+      paramCount++;
+    }
+
+    query += ` WHERE id = $${paramCount} RETURNING id, username, role, can_manage_users, can_manage_integrations, can_manage_payments, created_at, updated_at`;
     values.push(id);
 
     const result = await pool.query(query, values);
@@ -722,6 +746,52 @@ app.post('/api/admin/integration/sync', requireIntegrationManagement, async (_re
   } catch (error: any) {
     console.error('Sync error:', error);
     res.status(500).json({ error: `Sync failed: ${error.message}` });
+  }
+});
+
+// ============ Payment Configuration Endpoints ============
+
+// Public: get enabled payment methods
+app.get('/api/payment-methods', async (_req, res) => {
+  try {
+    const result = await pool.query('SELECT name, display_name, is_enabled FROM payment_methods WHERE is_enabled = TRUE');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching payment methods:', error);
+    res.status(500).json({ error: 'Failed to fetch payment methods' });
+  }
+});
+
+// Admin: get all payment methods
+app.get('/api/admin/payment-methods', requirePaymentManagement, async (_req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM payment_methods ORDER BY id');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching admin payment methods:', error);
+    res.status(500).json({ error: 'Failed to fetch payment methods' });
+  }
+});
+
+// Admin: toggle payment method
+app.patch('/api/admin/payment-methods/:name', requirePaymentManagement, async (req, res) => {
+  try {
+    const { name } = req.params;
+    const { isEnabled } = req.body;
+
+    const result = await pool.query(
+      'UPDATE payment_methods SET is_enabled = $1, updated_at = CURRENT_TIMESTAMP WHERE name = $2 RETURNING *',
+      [isEnabled, name]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Payment method not found' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error updating payment method:', error);
+    res.status(500).json({ error: 'Failed to update payment method' });
   }
 });
 

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { CartItem } from '../types';
+import { CartItem, PaymentMethod } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
@@ -15,14 +15,16 @@ interface CheckoutModalProps {
 export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onClearCart, total, items }) => {
   const [step, setStep] = useState(1);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [orderId, setOrderId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [formData, setFormData] = useState({
     name: '',
     address: '',
     phone: '',
     deliveryDate: '',
     deliveryTime: '10:00',
-    paymentMethod: 'Karta'
+    paymentMethod: 'Gotówka przy odbiorze'
   });
 
   // Calculate date constraints
@@ -30,20 +32,41 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
   const minDate = today.toISOString().split('T')[0];
 
   useEffect(() => {
+    const fetchPaymentMethods = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/payment-methods`);
+        if (response.ok) {
+          const data = await response.json();
+          setPaymentMethods(data);
+          // Set default payment method if items exist
+          if (data.length > 0) {
+            setFormData(prev => ({ ...prev, paymentMethod: data[0].display_name }));
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching payment methods:', err);
+      }
+    };
+    fetchPaymentMethods();
+  }, []);
+
+  useEffect(() => {
     if (isOpen) {
       setStep(1);
       setIsSuccess(false);
+      setOrderId(null);
       setError(null);
-      setFormData({
+      setFormData(prev => ({
+        ...prev,
         name: '',
         address: '',
         phone: '',
         deliveryDate: '',
         deliveryTime: '10:00',
-        paymentMethod: 'Karta'
-      });
+        paymentMethod: paymentMethods.length > 0 ? paymentMethods[0].display_name : 'Gotówka przy odbiorze'
+      }));
     }
-  }, [isOpen]);
+  }, [isOpen, paymentMethods]);
 
   if (!isOpen) return null;
 
@@ -94,6 +117,13 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
         throw new Error('Failed to create order');
       }
 
+      const data = await response.json();
+      console.log('Order created successfully:', data);
+      if (data && data.id) {
+        setOrderId(data.id);
+      } else {
+        console.warn('Order created but no ID returned from backend');
+      }
       onClearCart();
       setIsSuccess(true);
     } catch (err) {
@@ -114,6 +144,12 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
               <i className="fas fa-check"></i>
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Zamówienie przyjęte!</h2>
+            <div className="my-4 p-3 bg-sienna-50 rounded-xl border border-sienna-100">
+              <p className="text-gray-600 text-sm mb-1 uppercase tracking-wider font-bold">Numer zamówienia</p>
+              <p className="text-3xl font-black text-sienna-600">
+                #{orderId || '...'}
+              </p>
+            </div>
             <p className="text-gray-500 mb-8">Twoje zamówienie zostało zaplanowane. Dziękujemy!</p>
             <button
               onClick={onClose}
@@ -221,9 +257,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                       onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
                       className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 outline-none"
                     >
-                      <option>Karta</option>
-                      <option>Gotówka przy odbiorze</option>
-                      <option>BLIK</option>
+                      {paymentMethods.map((method) => (
+                        <option key={method.name} value={method.display_name}>
+                          {method.display_name}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
