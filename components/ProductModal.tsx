@@ -80,7 +80,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onC
                     </div>
 
                     <div className="flex items-center gap-4 mb-6">
-                        <span className="text-2xl font-bold text-emerald-600">
+                        <span className="text-2xl font-bold text-sienna-600">
                             {(product.price || 0).toFixed(2)} zł
                         </span>
                         <div className="h-4 w-px bg-gray-300"></div>
@@ -118,7 +118,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onC
                                 ? 'bg-lime-500 text-white shadow-inner cursor-default'
                                 : isDisabled
                                     ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                                    : 'bg-gray-900 text-white hover:bg-emerald-600 hover:shadow-lg shadow-emerald-500/30'
+                                    : 'bg-gray-900 text-white hover:bg-sienna-600 hover:shadow-lg shadow-sienna-500/30'
                                 }`}
                         >
                             {isAdded ? (

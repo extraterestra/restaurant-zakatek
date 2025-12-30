@@ -89,7 +89,7 @@ export const AIChef: React.FC<AIChefProps> = ({ onAddToCart, onViewDetails, menu
             <div className="p-3">
               <div className="text-xs font-bold text-gray-800 mb-1 truncate">{product.name}</div>
               <div className="flex justify-between items-center mb-2">
-                <span className="text-emerald-600 font-bold text-xs">{product.price} zł</span>
+                <span className="text-sienna-600 font-bold text-xs">{product.price} zł</span>
                 <span className="text-[10px] text-gray-500">{product.calories} kcal</span>
               </div>
               <button
@@ -97,7 +97,7 @@ export const AIChef: React.FC<AIChefProps> = ({ onAddToCart, onViewDetails, menu
                 disabled={product.isEnabled === false}
                 className={`w-full text-xs py-1.5 rounded-lg transition-colors ${product.isEnabled === false
                   ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                  : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                  : 'bg-sienna-600 text-white hover:bg-sienna-700'
                   }`}
               >
                 Do koszyka
@@ -113,11 +113,11 @@ export const AIChef: React.FC<AIChefProps> = ({ onAddToCart, onViewDetails, menu
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
       {isOpen && (
         <div className="mb-4 w-80 md:w-96 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden flex flex-col h-[500px] transition-all duration-300 transform origin-bottom-right animate-fade-in-up">
-          <div className="bg-emerald-600 p-4 text-white flex justify-between items-center">
+          <div className="bg-sienna-600 p-4 text-white flex justify-between items-center">
             <h3 className="font-semibold flex items-center gap-2">
               <i className="fas fa-robot"></i> Inteligentny Kelner
             </h3>
-            <button onClick={() => setIsOpen(false)} className="text-white hover:text-emerald-100">
+            <button onClick={() => setIsOpen(false)} className="text-white hover:text-sienna-100">
               <i className="fas fa-times"></i>
             </button>
           </div>
@@ -126,7 +126,7 @@ export const AIChef: React.FC<AIChefProps> = ({ onAddToCart, onViewDetails, menu
             {messages.map((msg, idx) => (
               <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm ${msg.role === 'user'
-                  ? 'bg-emerald-600 text-white rounded-br-none'
+                  ? 'bg-sienna-600 text-white rounded-br-none'
                   : 'bg-white text-gray-800 border border-gray-200 rounded-bl-none shadow-sm'
                   }`}>
                   {msg.role === 'model' ? renderMessageContent(msg.text) : msg.text}
@@ -152,12 +152,12 @@ export const AIChef: React.FC<AIChefProps> = ({ onAddToCart, onViewDetails, menu
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Zaproponuj coś lekkiego..."
-                className="flex-1 bg-gray-100 border-0 rounded-full px-4 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                className="flex-1 bg-gray-100 border-0 rounded-full px-4 py-2 text-sm focus:ring-2 focus:ring-sienna-500 focus:outline-none"
               />
               <button
                 type="submit"
                 disabled={isLoading}
-                className="bg-emerald-600 text-white w-9 h-9 rounded-full flex items-center justify-center hover:bg-emerald-700 transition-colors disabled:opacity-50"
+                className="bg-sienna-600 text-white w-9 h-9 rounded-full flex items-center justify-center hover:bg-sienna-700 transition-colors disabled:opacity-50"
               >
                 <i className="fas fa-paper-plane text-xs"></i>
               </button>
@@ -168,7 +168,7 @@ export const AIChef: React.FC<AIChefProps> = ({ onAddToCart, onViewDetails, menu
 
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`${isOpen ? 'bg-gray-800' : 'bg-emerald-600'} text-white p-4 rounded-full shadow-lg hover:shadow-emerald-500/30 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center`}
+        className={`${isOpen ? 'bg-gray-800' : 'bg-sienna-600'} text-white p-4 rounded-full shadow-lg hover:shadow-sienna-500/30 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center`}
       >
         {isOpen ? <i className="fas fa-times text-xl"></i> : <i className="fas fa-sparkles text-xl"></i>}
       </button>

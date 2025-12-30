@@ -21,14 +21,13 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
     address: '',
     phone: '',
     deliveryDate: '',
-    deliveryTime: '12:00',
+    deliveryTime: '10:00',
     paymentMethod: 'Karta'
   });
 
-  // Calculate tomorrow's date for min attribute
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const minDate = tomorrow.toISOString().split('T')[0];
+  // Calculate date constraints
+  const today = new Date();
+  const minDate = today.toISOString().split('T')[0];
 
   useEffect(() => {
     if (isOpen) {
@@ -40,7 +39,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
         address: '',
         phone: '',
         deliveryDate: '',
-        deliveryTime: '12:00',
+        deliveryTime: '10:00',
         paymentMethod: 'Karta'
       });
     }
@@ -51,7 +50,20 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
   const handlePay = async (e: React.FormEvent) => {
     e.preventDefault();
     setStep(2);
+
     setError(null);
+
+    // Validate delivery time
+    const [hours, minutes] = formData.deliveryTime.split(':').map(Number);
+    const timeValue = hours * 60 + minutes;
+    const minTime = 10 * 60; // 10:00
+    const maxTime = 17 * 60; // 17:00
+
+    if (timeValue < minTime || timeValue > maxTime) {
+      setError('Restauracja czynna w godzinach 10:00 - 17:00. Proszę wybrać inną godzinę.');
+      setStep(1);
+      return;
+    }
 
     try {
       const orderData = {
@@ -160,7 +172,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Data (od jutra)</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Data dostawy</label>
                       <input
                         required
                         type="date"
@@ -172,23 +184,35 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Godzina</label>
-                      <select
+                      <input
+                        type="time"
+                        required
                         value={formData.deliveryTime}
+                        min="10:00"
+                        max="17:00"
                         onChange={(e) => setFormData({ ...formData, deliveryTime: e.target.value })}
                         className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 outline-none"
-                      >
-                        <option>12:00</option>
-                        <option>13:00</option>
-                        <option>14:00</option>
-                        <option>15:00</option>
-                        <option>16:00</option>
-                        <option>17:00</option>
-                        <option>18:00</option>
-                        <option>19:00</option>
-                        <option>20:00</option>
-                      </select>
+                      />
                     </div>
                   </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const now = new Date();
+                      now.setHours(now.getHours() + 1);
+                      const dateStr = now.toISOString().split('T')[0];
+                      // Format HH:MM
+                      const hours = String(now.getHours()).padStart(2, '0');
+                      const minutes = String(now.getMinutes()).padStart(2, '0');
+                      const timeStr = `${hours}:${minutes}`;
+                      setFormData(prev => ({ ...prev, deliveryDate: dateStr, deliveryTime: timeStr }));
+                    }}
+                    className="w-full bg-sienna-100 text-sienna-700 py-2 rounded-lg text-sm font-semibold hover:bg-sienna-200 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <i className="fas fa-clock"></i>
+                    Dostarcz za godzinę (+1h)
+                  </button>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Płatność</label>
