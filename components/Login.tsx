@@ -161,12 +161,6 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
                             )}
                         </button>
                     </form>
-
-                    <div className="mt-6 pt-6 border-t border-gray-200">
-                        <p className="text-xs text-gray-500 text-center">
-                            Default credentials: <span className="font-mono font-semibold">admin / admin0617</span>
-                        </p>
-                    </div>
                 </div>
 
                 {/* Footer */}

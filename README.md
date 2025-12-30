@@ -98,7 +98,6 @@ docker-compose up -d
 
 - **Local**:
   - **URL**: `http://localhost:3000/admin`
-  - **Default credentials**: `admin / admin0617`
   - The frontend talks to the backend via `VITE_API_URL` (default `http://localhost:5001`), and the backend uses cookie-based sessions.
 - **Test/Staging**:
   - **URL**: `https://frontend-test-staging.up.railway.app/admin`
@@ -106,7 +105,7 @@ docker-compose up -d
   - **CORS/Sessions**:
     - On the backend service set **`FRONTEND_URL`** to `https://frontend-test-staging.up.railway.app` (or `*` while testing).
     - Ensure **`NODE_ENV=production`** so cookies are sent with `secure: true` and `sameSite: 'none'` for cross-origin HTTPS.
-  - Uses the same default credentials: `admin / admin0617` (unless you change them in the database).
+  - Uses the default credentials set during initialization (unless you change them in the database).
 - **Production**:
   - **URL**: `https://frontend-prod-production-8320.up.railway.app/admin`
   - Make sure:
