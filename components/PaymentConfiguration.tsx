@@ -9,6 +9,9 @@ export const PaymentConfiguration: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [session, setSession] = useState<AuthSession | null>(null);
+    const [savingName, setSavingName] = useState<string | null>(null);
+    const [editTarget, setEditTarget] = useState<PaymentMethod | null>(null);
+    const [editDisplayName, setEditDisplayName] = useState('');
 
     const fetchMethods = async () => {
         try {
@@ -48,6 +51,34 @@ export const PaymentConfiguration: React.FC = () => {
         }
     };
 
+    const handleSaveName = async () => {
+        if (!editTarget) return;
+        try {
+            setSavingName(editTarget.name);
+            const response = await fetch(`${API_BASE_URL}/api/admin/payment-methods/${editTarget.name}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({ displayName: editDisplayName }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update payment method');
+            }
+
+            const updated = await response.json();
+            setMethods(methods.map(m => m.name === updated.name ? updated : m));
+            setEditTarget(null);
+            setEditDisplayName('');
+        } catch (err: any) {
+            alert(err.message || 'Failed to update payment method');
+        } finally {
+            setSavingName(null);
+        }
+    };
+
     useEffect(() => {
         checkSession();
         fetchMethods();
@@ -72,6 +103,11 @@ export const PaymentConfiguration: React.FC = () => {
         } catch (err: any) {
             alert(err.message || 'Failed to update payment method');
         }
+    };
+
+    const openEditModal = (method: PaymentMethod) => {
+        setEditTarget(method);
+        setEditDisplayName(method.display_name);
     };
 
     if (loading && methods.length === 0) {
@@ -130,31 +166,67 @@ export const PaymentConfiguration: React.FC = () => {
                                         </div>
                                         <div>
                                             <h3 className="font-bold text-gray-900">{method.display_name}</h3>
-                                            <p className="text-sm text-gray-500">
+                                            <p className="text-sm text-gray-500 mt-1">
                                                 {method.is_enabled ? 'Active' : 'Disabled'}
                                             </p>
                                         </div>
                                     </div>
                                     
-                                    <button
-                                        onClick={() => handleToggle(method.name, !method.is_enabled)}
-                                        className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-sienna-500 focus:ring-offset-2 ${
-                                            method.is_enabled ? 'bg-sienna-600' : 'bg-gray-200'
-                                        }`}
-                                    >
-                                        <span
-                                            aria-hidden="true"
-                                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                                                method.is_enabled ? 'translate-x-5' : 'translate-x-0'
+                                    <div className="flex items-center gap-3">
+                                        <button
+                                            onClick={() => handleToggle(method.name, !method.is_enabled)}
+                                            className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-sienna-500 focus:ring-offset-2 ${
+                                                method.is_enabled ? 'bg-sienna-600' : 'bg-gray-200'
                                             }`}
-                                        />
-                                    </button>
+                                        >
+                                            <span
+                                                aria-hidden="true"
+                                                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                                    method.is_enabled ? 'translate-x-5' : 'translate-x-0'
+                                                }`}
+                                            />
+                                        </button>
+                                        <button
+                                            onClick={() => openEditModal(method)}
+                                            className="px-3 py-2 text-sm font-semibold rounded-lg border border-sienna-200 text-sienna-700 hover:bg-sienna-50"
+                                        >
+                                            Edit
+                                        </button>
+                                    </div>
                                 </div>
                             ))}
                         </div>
                     </div>
                 </div>
             </div>
+            {editTarget && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6">
+                        <h3 className="text-xl font-bold text-gray-900 mb-4">Edit payment name</h3>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Display name</label>
+                        <input
+                            value={editDisplayName}
+                            onChange={(e) => setEditDisplayName(e.target.value)}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sienna-500"
+                        />
+                        <div className="flex justify-end gap-3 mt-6">
+                            <button
+                                onClick={() => { setEditTarget(null); setEditDisplayName(''); }}
+                                className="px-4 py-2 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleSaveName}
+                                disabled={savingName === editTarget.name || editDisplayName.trim().length === 0}
+                                className="px-4 py-2 rounded-lg bg-sienna-600 text-white font-semibold hover:bg-sienna-700 disabled:opacity-60"
+                            >
+                                {savingName === editTarget.name ? 'Saving...' : 'Save'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </AdminLayout>
     );
 };
