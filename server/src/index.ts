@@ -773,15 +773,24 @@ app.get('/api/admin/payment-methods', requirePaymentManagement, async (_req, res
   }
 });
 
-// Admin: toggle payment method
+// Admin: update/toggle payment method (enable/disable or rename display name)
 app.patch('/api/admin/payment-methods/:name', requirePaymentManagement, async (req, res) => {
   try {
     const { name } = req.params;
-    const { isEnabled } = req.body;
+    const { isEnabled, displayName } = req.body;
+
+    if (isEnabled === undefined && !displayName) {
+      return res.status(400).json({ error: 'No changes provided' });
+    }
 
     const result = await pool.query(
-      'UPDATE payment_methods SET is_enabled = $1, updated_at = CURRENT_TIMESTAMP WHERE name = $2 RETURNING *',
-      [isEnabled, name]
+      `UPDATE payment_methods
+         SET is_enabled = COALESCE($1, is_enabled),
+             display_name = COALESCE($2, display_name),
+             updated_at = CURRENT_TIMESTAMP
+       WHERE name = $3
+       RETURNING *`,
+      [isEnabled, displayName, name]
     );
 
     if (result.rows.length === 0) {
