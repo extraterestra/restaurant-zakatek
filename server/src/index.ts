@@ -682,6 +682,102 @@ app.patch('/api/admin/integration', requireIntegrationManagement, async (req, re
   }
 });
 
+// Inbound: accept menu data from external platform
+app.post('/api/external-menu', async (req, res) => {
+  try {
+    const apiKey = req.header('x-api-key');
+    if (!apiKey) {
+      return res.status(401).json({ error: 'Missing API key' });
+    }
+
+    const integrationResult = await pool.query('SELECT * FROM integrations LIMIT 1');
+    if (integrationResult.rows.length === 0) {
+      return res.status(400).json({ error: 'Integration settings not configured' });
+    }
+
+    const integration = integrationResult.rows[0];
+    if (integration.api_key !== apiKey) {
+      return res.status(401).json({ error: 'Invalid API key' });
+    }
+
+    const {
+      restaurantExternalId,
+      restaurantName,
+      restaurantAddress,
+      restaurantPhone,
+      currency,
+      items,
+    } = req.body;
+
+    if (!restaurantExternalId || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ error: 'restaurantExternalId and items are required' });
+    }
+
+    // Persist restaurant metadata if provided
+    await pool.query(
+      `UPDATE integrations
+       SET restaurant_external_id = COALESCE($1, restaurant_external_id),
+           restaurant_address = COALESCE($2, restaurant_address),
+           restaurant_phone = COALESCE($3, restaurant_phone),
+           currency = COALESCE($4, currency),
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $5`,
+      [
+        restaurantExternalId,
+        restaurantAddress,
+        restaurantPhone,
+        currency,
+        integration.id,
+      ]
+    );
+
+    let processed = 0;
+    for (const rawItem of items) {
+      const { id, name, description, price, picture, category, calories, isEnabled } = rawItem;
+
+      if (!id || !name || price === undefined || price === null) {
+        console.warn('[External Import] Skipping item due to missing required fields', rawItem);
+        continue;
+      }
+
+      await pool.query(
+        `INSERT INTO menu_items (external_id, name, description, image_url, calories, category, price, is_enabled)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+         ON CONFLICT (external_id) DO UPDATE SET
+           name = EXCLUDED.name,
+           description = EXCLUDED.description,
+           image_url = EXCLUDED.image_url,
+           calories = EXCLUDED.calories,
+           category = EXCLUDED.category,
+           price = EXCLUDED.price,
+           is_enabled = EXCLUDED.is_enabled,
+           updated_at = CURRENT_TIMESTAMP`,
+        [
+          String(id),
+          name,
+          description || '',
+          picture || '',
+          Number.isFinite(calories) ? calories : 0,
+          category || 'Other',
+          parseFloat(price),
+          isEnabled !== undefined ? !!isEnabled : true,
+        ]
+      );
+      processed += 1;
+    }
+
+    res.json({
+      message: 'Menu imported successfully',
+      restaurantExternalId,
+      restaurantName,
+      itemsProcessed: processed,
+    });
+  } catch (error) {
+    console.error('External menu import failed:', error);
+    res.status(500).json({ error: 'Failed to import menu from external platform' });
+  }
+});
+
 // Sync/Export menu to external platform
 app.post('/api/admin/integration/sync', requireIntegrationManagement, async (_req, res) => {
   try {
@@ -744,8 +840,9 @@ app.post('/api/admin/integration/sync', requireIntegrationManagement, async (_re
 
     res.json({ message: `Successfully synced ${menuData.length} items to external platform.` });
   } catch (error: any) {
-    console.error('Sync error:', error);
-    res.status(500).json({ error: `Sync failed: ${error.message}` });
+    const errMsg = error instanceof Error ? error.message : typeof error === 'string' ? error : 'Unknown error';
+    console.error('Sync error:', errMsg);
+    res.status(500).json({ error: `Sync failed: ${errMsg}` });
   }
 });
 

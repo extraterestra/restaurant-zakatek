@@ -58,6 +58,7 @@ export const initDb = async () => {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS menu_items (
         id SERIAL PRIMARY KEY,
+        external_id VARCHAR(255),
         name VARCHAR(255) NOT NULL,
         description TEXT NOT NULL,
         image_url TEXT NOT NULL,
@@ -70,6 +71,15 @@ export const initDb = async () => {
       )
     `);
     console.log('Menu items table initialized successfully');
+
+    // Ensure external_id exists and is indexed for idempotent imports
+    await pool.query(`
+      ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS external_id VARCHAR(255);
+    `);
+    await pool.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS menu_items_external_id_idx ON menu_items(external_id);
+    `);
+    console.log('Menu items external_id column and index verified');
 
     // Seed initial menu items if table is empty or missing new categories
     const newCategoriesCheck = await pool.query("SELECT COUNT(*) FROM menu_items WHERE category IN ('Zupy', 'Dania główne')");

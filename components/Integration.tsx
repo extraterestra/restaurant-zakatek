@@ -147,6 +147,36 @@ export const Integration: React.FC = () => {
     return new Date(date).toLocaleString('pl-PL');
   };
 
+  const generatedCurl = () => {
+    const body = {
+      restaurantExternalId: settings.restaurant_external_id || 'partner-123',
+      restaurantName: 'SIVIK Restaurant',
+      restaurantAddress: settings.restaurant_address || '...',
+      restaurantPhone: settings.restaurant_phone || '...',
+      currency: settings.currency,
+      items: [
+        {
+          id: 'item-1',
+          name: 'Example dish',
+          description: '...',
+          price: 10.5,
+          currency: settings.currency,
+          picture: 'https://example.com/image.jpg',
+          category: 'Category',
+          calories: 100,
+          isEnabled: true,
+        },
+      ],
+    };
+
+    return [
+      "curl --location '" + (settings.platform_url || 'http://host.docker.internal:3001/api/external-menu') + "' \\",
+      "  --header 'Content-Type: application/json' \\",
+      "  --header 'x-api-key: " + (settings.api_key || 'your-api-key') + "' \\",
+      "  --data '" + JSON.stringify(body, null, 2).replace(/\n/g, '\\n').replace(/'/g, "'\"'\"'") + "'",
+    ].join('\n');
+  };
+
   return (
     <AdminLayout active="integration">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -327,6 +357,19 @@ export const Integration: React.FC = () => {
                       </>
                     )}
                   </button>
+                </div>
+
+                <div className="mt-6">
+                  <p className="text-xs font-semibold text-gray-700 mb-2">Generated cURL for this sync</p>
+                  <textarea
+                    className="w-full bg-gray-900 text-gray-100 font-mono text-xs p-3 rounded-lg border border-gray-700"
+                    rows={6}
+                    readOnly
+                    value={generatedCurl()}
+                  />
+                  <p className="text-[11px] text-gray-500 mt-1">
+                    Copy and run this from your host if you want to test the same request the app sends.
+                  </p>
                 </div>
               </div>
             </div>
