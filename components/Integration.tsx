@@ -8,6 +8,7 @@ interface IntegrationSettings {
   platform_name: string;
   platform_url: string;
   api_key: string;
+  restaurant_name: string;
   restaurant_external_id: string;
   restaurant_address: string;
   restaurant_phone: string;
@@ -20,6 +21,7 @@ export const Integration: React.FC = () => {
     platform_name: 'External Food Platform',
     platform_url: '',
     api_key: '',
+    restaurant_name: '',
     restaurant_external_id: '',
     restaurant_address: '',
     restaurant_phone: '',
@@ -62,6 +64,7 @@ export const Integration: React.FC = () => {
             platform_name: data.platform_name || 'External Food Platform',
             platform_url: data.platform_url || '',
             api_key: data.api_key || '',
+            restaurant_name: data.restaurant_name || '',
             restaurant_external_id: data.restaurant_external_id || '',
             restaurant_address: data.restaurant_address || '',
             restaurant_phone: data.restaurant_phone || '',
@@ -95,6 +98,7 @@ export const Integration: React.FC = () => {
         body: JSON.stringify({
           platformUrl: settings.platform_url,
           apiKey: settings.api_key,
+          restaurantName: settings.restaurant_name,
           restaurantExternalId: settings.restaurant_external_id,
           restaurantAddress: settings.restaurant_address,
           restaurantPhone: settings.restaurant_phone,
@@ -150,7 +154,7 @@ export const Integration: React.FC = () => {
   const generatedCurl = () => {
     const body = {
       restaurantExternalId: settings.restaurant_external_id || 'partner-123',
-      restaurantName: 'SIVIK Restaurant',
+      restaurantName: settings.restaurant_name || 'SIVIK Restaurant',
       restaurantAddress: settings.restaurant_address || '...',
       restaurantPhone: settings.restaurant_phone || '...',
       currency: settings.currency,
@@ -246,6 +250,19 @@ export const Integration: React.FC = () => {
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">
+                      Restaurant Name
+                    </label>
+                    <input
+                      type="text"
+                      value={settings.restaurant_name}
+                      onChange={(e) => setSettings({ ...settings, restaurant_name: e.target.value })}
+                      placeholder="SIVIK Restaurant"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                      required
+                    />
+                  </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1">
                         Restaurant External ID

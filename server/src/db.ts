@@ -288,6 +288,7 @@ export const initDb = async () => {
         platform_name VARCHAR(255) NOT NULL,
         platform_url TEXT NOT NULL,
         api_key TEXT NOT NULL,
+        restaurant_name TEXT,
         restaurant_external_id VARCHAR(255),
         restaurant_address TEXT,
         restaurant_phone VARCHAR(50),
@@ -302,6 +303,7 @@ export const initDb = async () => {
     // Ensure columns exist if table was already created
     await pool.query(`
       ALTER TABLE integrations ADD COLUMN IF NOT EXISTS restaurant_external_id VARCHAR(255);
+      ALTER TABLE integrations ADD COLUMN IF NOT EXISTS restaurant_name TEXT;
       ALTER TABLE integrations ADD COLUMN IF NOT EXISTS restaurant_address TEXT;
       ALTER TABLE integrations ADD COLUMN IF NOT EXISTS restaurant_phone VARCHAR(50);
       ALTER TABLE integrations ADD COLUMN IF NOT EXISTS currency VARCHAR(10) DEFAULT 'PLN';
@@ -312,11 +314,12 @@ export const initDb = async () => {
     const integrationCount = await pool.query('SELECT COUNT(*) FROM integrations');
     if (parseInt(integrationCount.rows[0].count) === 0) {
       await pool.query(
-        'INSERT INTO integrations (platform_name, platform_url, api_key, restaurant_external_id, restaurant_address, restaurant_phone, currency) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+        'INSERT INTO integrations (platform_name, platform_url, api_key, restaurant_name, restaurant_external_id, restaurant_address, restaurant_phone, currency) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
         [
           'External Food Platform',
           'http://host.docker.internal:3001/api/external-menu',
           'da079e38fcb44b6d86ad08ac3ee33a42',
+          'SIVIK Restaurant',
           'partner-123',
           '1234 Main Street, Fez, Morroko',
           '+33 30 1234562',
