@@ -840,8 +840,9 @@ app.post('/api/admin/integration/sync', requireIntegrationManagement, async (_re
 
     res.json({ message: `Successfully synced ${menuData.length} items to external platform.` });
   } catch (error: any) {
-    console.error('Sync error:', error?.message || error);
-    res.status(500).json({ error: `Sync failed: ${error.message}` });
+    const errMsg = error instanceof Error ? error.message : typeof error === 'string' ? error : 'Unknown error';
+    console.error('Sync error:', errMsg);
+    res.status(500).json({ error: `Sync failed: ${errMsg}` });
   }
 });
 
