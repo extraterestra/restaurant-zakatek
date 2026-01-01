@@ -658,20 +658,20 @@ app.get('/api/admin/integration', requireIntegrationManagement, async (_req, res
 // Update integration settings
 app.patch('/api/admin/integration', requireIntegrationManagement, async (req, res) => {
   try {
-    const { platformUrl, apiKey, restaurantExternalId, restaurantAddress, restaurantPhone, currency } = req.body;
+    const { platformUrl, apiKey, restaurantName, restaurantExternalId, restaurantAddress, restaurantPhone, currency } = req.body;
     
     // For simplicity, we only manage one integration record
     const check = await pool.query('SELECT id FROM integrations LIMIT 1');
     
     if (check.rows.length === 0) {
       await pool.query(
-        'INSERT INTO integrations (platform_name, platform_url, api_key, restaurant_external_id, restaurant_address, restaurant_phone, currency) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-        ['External Platform', platformUrl, apiKey, restaurantExternalId, restaurantAddress, restaurantPhone, currency]
+        'INSERT INTO integrations (platform_name, platform_url, api_key, restaurant_name, restaurant_external_id, restaurant_address, restaurant_phone, currency) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
+        ['External Platform', platformUrl, apiKey, restaurantName, restaurantExternalId, restaurantAddress, restaurantPhone, currency]
       );
     } else {
       await pool.query(
-        'UPDATE integrations SET platform_url = $1, api_key = $2, restaurant_external_id = $3, restaurant_address = $4, restaurant_phone = $5, currency = $6, updated_at = CURRENT_TIMESTAMP WHERE id = $7',
-        [platformUrl, apiKey, restaurantExternalId, restaurantAddress, restaurantPhone, currency, check.rows[0].id]
+        'UPDATE integrations SET platform_url = $1, api_key = $2, restaurant_name = $3, restaurant_external_id = $4, restaurant_address = $5, restaurant_phone = $6, currency = $7, updated_at = CURRENT_TIMESTAMP WHERE id = $8',
+        [platformUrl, apiKey, restaurantName, restaurantExternalId, restaurantAddress, restaurantPhone, currency, check.rows[0].id]
       );
     }
     
@@ -717,13 +717,15 @@ app.post('/api/external-menu', async (req, res) => {
     await pool.query(
       `UPDATE integrations
        SET restaurant_external_id = COALESCE($1, restaurant_external_id),
-           restaurant_address = COALESCE($2, restaurant_address),
-           restaurant_phone = COALESCE($3, restaurant_phone),
-           currency = COALESCE($4, currency),
+           restaurant_name = COALESCE($2, restaurant_name),
+           restaurant_address = COALESCE($3, restaurant_address),
+           restaurant_phone = COALESCE($4, restaurant_phone),
+           currency = COALESCE($5, currency),
            updated_at = CURRENT_TIMESTAMP
-       WHERE id = $5`,
+       WHERE id = $6`,
       [
         restaurantExternalId,
+        restaurantName,
         restaurantAddress,
         restaurantPhone,
         currency,
@@ -802,7 +804,7 @@ app.post('/api/admin/integration/sync', requireIntegrationManagement, async (_re
     // 3. Prepare data in the exact format required by the external platform
     const exportData = {
       restaurantExternalId: config.restaurant_external_id,
-      restaurantName: "SIVIK Restaurant",
+      restaurantName: config.restaurant_name || 'SIVIK Restaurant',
       restaurantAddress: config.restaurant_address,
       restaurantPhone: config.restaurant_phone,
       currency: config.currency,
