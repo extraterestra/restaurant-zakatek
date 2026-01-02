@@ -18,6 +18,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
   const [orderId, setOrderId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  const [deliverySettings, setDeliverySettings] = useState<{ is_enabled: boolean; min_order_amount: number; delivery_fee: number } | null>(null);
+  const [skipDelivery, setSkipDelivery] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     address: '',
@@ -48,6 +50,23 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
       }
     };
     fetchPaymentMethods();
+
+    const fetchDeliverySettings = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/delivery-settings`);
+        if (res.ok) {
+          const data = await res.json();
+          setDeliverySettings({
+            is_enabled: !!data.is_enabled,
+            min_order_amount: Number(data.min_order_amount) || 0,
+            delivery_fee: Number(data.delivery_fee) || 0,
+          });
+        }
+      } catch (err) {
+        console.error('Error fetching delivery settings:', err);
+      }
+    };
+    fetchDeliverySettings();
   }, []);
 
   useEffect(() => {
@@ -56,6 +75,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
       setIsSuccess(false);
       setOrderId(null);
       setError(null);
+      setSkipDelivery(false);
       setFormData(prev => ({
         ...prev,
         name: '',
@@ -69,6 +89,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
   }, [isOpen, paymentMethods]);
 
   if (!isOpen) return null;
+
+  const eligibleForDeliveryFee = deliverySettings?.is_enabled && total >= (deliverySettings?.min_order_amount || 0);
+  const deliveryActive = eligibleForDeliveryFee && !skipDelivery;
+  const deliveryFeeToApply = deliveryActive ? (deliverySettings?.delivery_fee || 0) : 0;
+  const grandTotal = total + deliveryFeeToApply;
 
   const handlePay = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,7 +127,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
           quantity: item.quantity,
           price: item.price
         })),
-        total: total
+        total: grandTotal,
+        deliveryType: deliveryActive ? 'delivery' : 'pickup'
       };
 
       const response = await fetch(`${API_BASE_URL}/api/orders`, {
@@ -162,7 +188,15 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
           <>
             <div className="px-8 py-6 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
               <h2 className="text-xl font-bold text-gray-900">Kasa</h2>
-              <span className="text-sm font-medium text-sienna-600">{(total || 0).toFixed(2)} zł</span>
+              <div className="text-right text-sm font-medium text-sienna-600">
+                <div>Suma: {(total || 0).toFixed(2)} zł</div>
+                {deliverySettings?.is_enabled && (
+                  <div className="text-gray-500">
+                    Dostawa: {deliveryActive ? `+${deliveryFeeToApply.toFixed(2)} zł` : 'niedostępna / nie dodano'}
+                  </div>
+                )}
+                <div className="font-bold text-gray-900">Razem: {grandTotal.toFixed(2)} zł</div>
+              </div>
             </div>
 
             <form onSubmit={handlePay} className="p-8 space-y-6">
@@ -208,7 +242,9 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Data dostawy</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        {deliveryActive ? 'Data dostawy' : 'Data odbioru'}
+                      </label>
                       <input
                         required
                         type="date"
@@ -244,11 +280,24 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                       const timeStr = `${hours}:${minutes}`;
                       setFormData(prev => ({ ...prev, deliveryDate: dateStr, deliveryTime: timeStr }));
                     }}
-                    className="w-full bg-sienna-100 text-sienna-700 py-2 rounded-lg text-sm font-semibold hover:bg-sienna-200 transition-colors flex items-center justify-center gap-2"
+                    disabled={!deliveryActive}
+                    className="w-full bg-sienna-100 text-sienna-700 py-2 rounded-lg text-sm font-semibold hover:bg-sienna-200 transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     <i className="fas fa-clock"></i>
                     Dostarcz za godzinę (+1h)
                   </button>
+
+                  {deliverySettings?.is_enabled && eligibleForDeliveryFee && (
+                    <label className="flex items-center gap-3 text-sm text-gray-700 mt-2">
+                      <input
+                        type="checkbox"
+                        checked={skipDelivery}
+                        onChange={(e) => setSkipDelivery(e.target.checked)}
+                        className="w-4 h-4 text-sienna-600 border-gray-300 rounded focus:ring-sienna-500"
+                      />
+                      <span>Nie potrzebuję dostawy</span>
+                    </label>
+                  )}
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Płatność</label>
@@ -275,7 +324,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
               )}
 
               {step === 1 && (
-                <button type="submit" className="w-full bg-sienna-600 text-white py-4 rounded-xl font-bold hover:bg-sienna-700 transition-colors shadow-lg shadow-sienna-900/20">
+                <button
+                  type="submit"
+                  className="w-full bg-sienna-600 text-white py-4 rounded-xl font-bold hover:bg-sienna-700 transition-colors shadow-lg shadow-sienna-900/20 disabled:opacity-60"
+                >
                   Zatwierdź Zamówienie
                 </button>
               )}

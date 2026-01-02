@@ -18,6 +18,7 @@ interface Order {
   phone: string | null;
   delivery_date: string;
   delivery_time: string;
+  delivery_type?: string;
   payment_method: string;
   items: OrderItem[];
   total: number;
@@ -281,10 +282,24 @@ export const Admin: React.FC = () => {
                         <div className="text-sm text-gray-900 max-w-xs">{order.address}</div>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          {new Date(order.delivery_date).toLocaleDateString('pl-PL')}
-                        </div>
-                        <div className="text-xs text-gray-500">{order.delivery_time}</div>
+                        {(() => {
+                          const subtotal = order.items.reduce((acc, item) => acc + ((item.price || 0) * item.quantity), 0);
+                          const inferredPickup = Math.abs(subtotal - (order.total || 0)) < 0.01;
+                          const deliveryType = order.delivery_type === 'pickup' || !order.delivery_type || inferredPickup ? 'pickup' : 'delivery';
+                          const deliveryLabel = deliveryType === 'pickup' ? 'Odbiór na miejscu' : 'Dostawa';
+                          return (
+                            <div className="flex flex-col gap-1">
+                              <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full bg-gray-100 text-gray-800 border border-gray-200">
+                                <i className="fas fa-truck text-[11px]"></i>
+                                {deliveryLabel}
+                              </span>
+                              <div className="text-sm text-gray-900">
+                                {new Date(order.delivery_date).toLocaleDateString('pl-PL')}
+                              </div>
+                              <div className="text-xs text-gray-500">{order.delivery_time}</div>
+                            </div>
+                          );
+                        })()}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="text-sm text-gray-900">{order.payment_method}</div>
