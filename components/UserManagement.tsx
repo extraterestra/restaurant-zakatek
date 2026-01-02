@@ -20,6 +20,7 @@ export const UserManagement: React.FC = () => {
         canManageUsers: false,
         canManageIntegrations: false,
         canManagePayments: false,
+        canManageDelivery: false,
     });
 
     const fetchUsers = async () => {
@@ -83,7 +84,7 @@ export const UserManagement: React.FC = () => {
             }
 
             setShowCreateModal(false);
-            setFormData({ username: '', password: '', role: 'read_only', canManageUsers: false, canManageIntegrations: false, canManagePayments: false });
+            setFormData({ username: '', password: '', role: 'read_only', canManageUsers: false, canManageIntegrations: false, canManagePayments: false, canManageDelivery: false });
             fetchUsers();
         } catch (err: any) {
             alert(err.message || 'Failed to create user');
@@ -99,7 +100,8 @@ export const UserManagement: React.FC = () => {
                 role: formData.role,
                 canManageUsers: formData.canManageUsers,
                 canManageIntegrations: formData.canManageIntegrations,
-                canManagePayments: formData.canManagePayments
+                canManagePayments: formData.canManagePayments,
+                canManageDelivery: formData.canManageDelivery,
             };
             if (formData.password) {
                 updateData.password = formData.password;
@@ -156,6 +158,7 @@ export const UserManagement: React.FC = () => {
             canManageUsers: user.can_manage_users,
             canManageIntegrations: user.can_manage_integrations,
             canManagePayments: user.can_manage_payments,
+            canManageDelivery: (user as any).can_manage_delivery ?? false,
         });
     };
 
@@ -229,7 +232,7 @@ export const UserManagement: React.FC = () => {
                             <button
                                 onClick={() => {
                                     setShowCreateModal(true);
-                                    setFormData({ username: '', password: '', role: 'read_only', canManageUsers: false, canManageIntegrations: false, canManagePayments: false });
+                                    setFormData({ username: '', password: '', role: 'read_only', canManageUsers: false, canManageIntegrations: false, canManagePayments: false, canManageDelivery: false });
                                 }}
                                 className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
                             >
@@ -310,12 +313,17 @@ export const UserManagement: React.FC = () => {
                                                                     Integrations
                                                                 </span>
                                                             )}
-                                                            {user.can_manage_payments && (
+                                        {user.can_manage_payments && (
                                                                 <span className="text-[10px] bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded border border-amber-100 w-fit">
                                                                     Payments
                                                                 </span>
                                                             )}
-                                                            {!user.can_manage_users && !user.can_manage_integrations && !user.can_manage_payments && (
+                                        {(user as any).can_manage_delivery && (
+                                            <span className="text-[10px] bg-green-50 text-green-700 px-1.5 py-0.5 rounded border border-green-100 w-fit">
+                                                Delivery
+                                            </span>
+                                        )}
+                                        {!user.can_manage_users && !user.can_manage_integrations && !user.can_manage_payments && !(user as any).can_manage_delivery && (
                                                                 <span className="text-[10px] text-gray-400 italic">None</span>
                                                             )}
                                                         </>
@@ -425,6 +433,16 @@ export const UserManagement: React.FC = () => {
                                         />
                                         <label htmlFor="canManagePaymentsCreate" className="text-sm text-gray-700">Can access Payment Configuration</label>
                                     </div>
+                                <div className="flex items-center gap-3">
+                                    <input
+                                        type="checkbox"
+                                        id="canManageDeliveryCreate"
+                                        checked={formData.canManageDelivery}
+                                        onChange={(e) => setFormData({ ...formData, canManageDelivery: e.target.checked })}
+                                        className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
+                                    />
+                                    <label htmlFor="canManageDeliveryCreate" className="text-sm text-gray-700">Can access Delivery Configuration</label>
+                                </div>
                                 </div>
                             )}
                             <div className="flex gap-3 pt-4">
@@ -522,6 +540,16 @@ export const UserManagement: React.FC = () => {
                                         />
                                         <label htmlFor="canManagePaymentsEdit" className="text-sm text-gray-700">Can access Payment Configuration</label>
                                     </div>
+                                <div className="flex items-center gap-3">
+                                    <input
+                                        type="checkbox"
+                                        id="canManageDeliveryEdit"
+                                        checked={formData.canManageDelivery}
+                                        onChange={(e) => setFormData({ ...formData, canManageDelivery: e.target.checked })}
+                                        className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
+                                    />
+                                    <label htmlFor="canManageDeliveryEdit" className="text-sm text-gray-700">Can access Delivery Configuration</label>
+                                </div>
                                 </div>
                             )}
                             <div className="flex gap-3 pt-4">

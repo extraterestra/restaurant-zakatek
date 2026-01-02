@@ -21,6 +21,7 @@ export const initDb = async () => {
         phone VARCHAR(50),
         delivery_date DATE NOT NULL,
         delivery_time VARCHAR(10) NOT NULL,
+        delivery_type VARCHAR(20) DEFAULT 'delivery',
         payment_method VARCHAR(50) NOT NULL,
         items JSONB NOT NULL,
         total DECIMAL(10, 2) NOT NULL,
@@ -29,6 +30,11 @@ export const initDb = async () => {
       )
     `);
     console.log('Orders table initialized successfully');
+
+    // Ensure delivery_type column exists for existing orders table
+    await pool.query(`
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_type VARCHAR(20) DEFAULT 'delivery';
+    `);
 
     // Create users table
     await pool.query(`
@@ -40,6 +46,7 @@ export const initDb = async () => {
         can_manage_users BOOLEAN DEFAULT FALSE,
         can_manage_integrations BOOLEAN DEFAULT FALSE,
         can_manage_payments BOOLEAN DEFAULT FALSE,
+        can_manage_delivery BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -51,6 +58,7 @@ export const initDb = async () => {
       ALTER TABLE users ADD COLUMN IF NOT EXISTS can_manage_users BOOLEAN DEFAULT FALSE;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS can_manage_integrations BOOLEAN DEFAULT FALSE;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS can_manage_payments BOOLEAN DEFAULT FALSE;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS can_manage_delivery BOOLEAN DEFAULT FALSE;
     `);
     console.log('Users table columns verified');
 
@@ -58,6 +66,7 @@ export const initDb = async () => {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS menu_items (
         id SERIAL PRIMARY KEY,
+        external_id VARCHAR(255),
         name VARCHAR(255) NOT NULL,
         description TEXT NOT NULL,
         image_url TEXT NOT NULL,
@@ -70,6 +79,15 @@ export const initDb = async () => {
       )
     `);
     console.log('Menu items table initialized successfully');
+
+    // Ensure external_id exists and is indexed for idempotent imports
+    await pool.query(`
+      ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS external_id VARCHAR(255);
+    `);
+    await pool.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS menu_items_external_id_idx ON menu_items(external_id);
+    `);
+    console.log('Menu items external_id column and index verified');
 
     // Seed initial menu items if table is empty or missing new categories
     const newCategoriesCheck = await pool.query("SELECT COUNT(*) FROM menu_items WHERE category IN ('Zupy', 'Dania główne')");
@@ -278,6 +296,7 @@ export const initDb = async () => {
         platform_name VARCHAR(255) NOT NULL,
         platform_url TEXT NOT NULL,
         api_key TEXT NOT NULL,
+        restaurant_name TEXT,
         restaurant_external_id VARCHAR(255),
         restaurant_address TEXT,
         restaurant_phone VARCHAR(50),
@@ -292,6 +311,7 @@ export const initDb = async () => {
     // Ensure columns exist if table was already created
     await pool.query(`
       ALTER TABLE integrations ADD COLUMN IF NOT EXISTS restaurant_external_id VARCHAR(255);
+      ALTER TABLE integrations ADD COLUMN IF NOT EXISTS restaurant_name TEXT;
       ALTER TABLE integrations ADD COLUMN IF NOT EXISTS restaurant_address TEXT;
       ALTER TABLE integrations ADD COLUMN IF NOT EXISTS restaurant_phone VARCHAR(50);
       ALTER TABLE integrations ADD COLUMN IF NOT EXISTS currency VARCHAR(10) DEFAULT 'PLN';
@@ -302,11 +322,12 @@ export const initDb = async () => {
     const integrationCount = await pool.query('SELECT COUNT(*) FROM integrations');
     if (parseInt(integrationCount.rows[0].count) === 0) {
       await pool.query(
-        'INSERT INTO integrations (platform_name, platform_url, api_key, restaurant_external_id, restaurant_address, restaurant_phone, currency) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+        'INSERT INTO integrations (platform_name, platform_url, api_key, restaurant_name, restaurant_external_id, restaurant_address, restaurant_phone, currency) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
         [
           'External Food Platform',
           'http://host.docker.internal:3001/api/external-menu',
           'da079e38fcb44b6d86ad08ac3ee33a42',
+          'SIVIK Restaurant',
           'partner-123',
           '1234 Main Street, Fez, Morroko',
           '+33 30 1234562',
@@ -321,8 +342,8 @@ export const initDb = async () => {
     if (parseInt(userCount.rows[0].count) === 0) {
       const passwordHash = await bcrypt.hash('admin0617', 10);
       await pool.query(
-        'INSERT INTO users (username, password_hash, role, can_manage_users, can_manage_integrations, can_manage_payments) VALUES ($1, $2, $3, $4, $5, $6)',
-        ['admin', passwordHash, 'admin', true, true, true]
+        'INSERT INTO users (username, password_hash, role, can_manage_users, can_manage_integrations, can_manage_payments, can_manage_delivery) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+        ['admin', passwordHash, 'admin', true, true, true, true]
       );
       console.log('Default admin user created successfully');
     }
@@ -355,6 +376,28 @@ export const initDb = async () => {
         );
       }
       console.log('Default payment methods seeded');
+    }
+
+    // Delivery settings table (single row)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS delivery_settings (
+        id SERIAL PRIMARY KEY,
+        is_enabled BOOLEAN DEFAULT FALSE,
+        min_order_amount DECIMAL(10,2) DEFAULT 0,
+        delivery_fee DECIMAL(10,2) DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('Delivery settings table initialized successfully');
+
+    const deliveryCount = await pool.query('SELECT COUNT(*) FROM delivery_settings');
+    if (parseInt(deliveryCount.rows[0].count) === 0) {
+      await pool.query(
+        'INSERT INTO delivery_settings (is_enabled, min_order_amount, delivery_fee) VALUES ($1, $2, $3)',
+        [false, 0, 0]
+      );
+      console.log('Default delivery settings created');
     }
   } catch (error) {
     console.error('Error initializing database:', error);

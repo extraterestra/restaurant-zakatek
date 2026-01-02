@@ -8,6 +8,7 @@ interface IntegrationSettings {
   platform_name: string;
   platform_url: string;
   api_key: string;
+  restaurant_name: string;
   restaurant_external_id: string;
   restaurant_address: string;
   restaurant_phone: string;
@@ -20,6 +21,7 @@ export const Integration: React.FC = () => {
     platform_name: 'External Food Platform',
     platform_url: '',
     api_key: '',
+    restaurant_name: '',
     restaurant_external_id: '',
     restaurant_address: '',
     restaurant_phone: '',
@@ -62,6 +64,7 @@ export const Integration: React.FC = () => {
             platform_name: data.platform_name || 'External Food Platform',
             platform_url: data.platform_url || '',
             api_key: data.api_key || '',
+            restaurant_name: data.restaurant_name || '',
             restaurant_external_id: data.restaurant_external_id || '',
             restaurant_address: data.restaurant_address || '',
             restaurant_phone: data.restaurant_phone || '',
@@ -95,6 +98,7 @@ export const Integration: React.FC = () => {
         body: JSON.stringify({
           platformUrl: settings.platform_url,
           apiKey: settings.api_key,
+          restaurantName: settings.restaurant_name,
           restaurantExternalId: settings.restaurant_external_id,
           restaurantAddress: settings.restaurant_address,
           restaurantPhone: settings.restaurant_phone,
@@ -145,6 +149,36 @@ export const Integration: React.FC = () => {
   const formatDate = (date: string | null) => {
     if (!date) return 'Never';
     return new Date(date).toLocaleString('pl-PL');
+  };
+
+  const generatedCurl = () => {
+    const body = {
+      restaurantExternalId: settings.restaurant_external_id || 'partner-123',
+      restaurantName: settings.restaurant_name || 'SIVIK Restaurant',
+      restaurantAddress: settings.restaurant_address || '...',
+      restaurantPhone: settings.restaurant_phone || '...',
+      currency: settings.currency,
+      items: [
+        {
+          id: 'item-1',
+          name: 'Example dish',
+          description: '...',
+          price: 10.5,
+          currency: settings.currency,
+          picture: 'https://example.com/image.jpg',
+          category: 'Category',
+          calories: 100,
+          isEnabled: true,
+        },
+      ],
+    };
+
+    return [
+      "curl --location '" + (settings.platform_url || 'http://host.docker.internal:3001/api/external-menu') + "' \\",
+      "  --header 'Content-Type: application/json' \\",
+      "  --header 'x-api-key: " + (settings.api_key || 'your-api-key') + "' \\",
+      "  --data '" + JSON.stringify(body, null, 2).replace(/\n/g, '\\n').replace(/'/g, "'\"'\"'") + "'",
+    ].join('\n');
   };
 
   return (
@@ -214,6 +248,19 @@ export const Integration: React.FC = () => {
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">
+                      Restaurant Name
+                    </label>
+                    <input
+                      type="text"
+                      value={settings.restaurant_name}
+                      onChange={(e) => setSettings({ ...settings, restaurant_name: e.target.value })}
+                      placeholder="SIVIK Restaurant"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                      required
+                    />
+                  </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1">
                         Restaurant External ID
@@ -324,6 +371,19 @@ export const Integration: React.FC = () => {
                       </>
                     )}
                   </button>
+                </div>
+
+                <div className="mt-6">
+                  <p className="text-xs font-semibold text-gray-700 mb-2">Generated cURL for this sync</p>
+                  <textarea
+                    className="w-full bg-gray-900 text-gray-100 font-mono text-xs p-3 rounded-lg border border-gray-700"
+                    rows={6}
+                    readOnly
+                    value={generatedCurl()}
+                  />
+                  <p className="text-[11px] text-gray-500 mt-1">
+                    Copy and run this from your host if you want to test the same request the app sends.
+                  </p>
                 </div>
               </div>
             </div>

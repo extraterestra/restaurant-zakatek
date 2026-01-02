@@ -18,8 +18,7 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
   onCheckout
 }) => {
   const subtotal = items.reduce((acc, item) => acc + ((item.price || 0) * item.quantity), 0);
-  const deliveryFee = 9.99;
-  const total = subtotal + deliveryFee;
+  const total = subtotal;
 
   return (
     <>
@@ -84,10 +83,6 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
                 <div className="flex justify-between text-gray-500">
                   <span>Suma częściowa</span>
                   <span>{subtotal.toFixed(2)} zł</span>
-                </div>
-                <div className="flex justify-between text-gray-500">
-                  <span>Dostawa</span>
-                  <span>{deliveryFee.toFixed(2)} zł</span>
                 </div>
                 <div className="flex justify-between font-bold text-lg text-gray-900 pt-2 border-t border-gray-200">
                   <span>Razem</span>
