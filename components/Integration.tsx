@@ -161,16 +161,14 @@ export const Integration: React.FC = () => {
           <div className="p-6">
             {message && (
               <div
-                className={`mb-6 p-4 rounded-lg flex items-center gap-3 ${
-                  message.type === 'success'
+                className={`mb-6 p-4 rounded-lg flex items-center gap-3 ${message.type === 'success'
                     ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                     : 'bg-red-50 text-red-700 border border-red-200'
-                }`}
+                  }`}
               >
                 <i
-                  className={`fas ${
-                    message.type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'
-                  }`}
+                  className={`fas ${message.type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'
+                    }`}
                 ></i>
                 <p className="text-sm font-medium">{message.text}</p>
               </div>
@@ -284,7 +282,7 @@ export const Integration: React.FC = () => {
               {/* Status & Sync Section */}
               <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
                 <h2 className="text-lg font-bold text-gray-900 mb-4">Sync Status</h2>
-                
+
                 <div className="space-y-4 mb-8">
                   <div className="flex justify-between items-center py-2 border-b border-gray-200">
                     <span className="text-sm text-gray-600">Last Successful Sync:</span>
@@ -305,15 +303,14 @@ export const Integration: React.FC = () => {
                     Clicking the button below will export <strong>all</strong> dishes
                     to the external platform. Items will include their status (Enabled/Disabled).
                   </p>
-                  
+
                   <button
                     onClick={handleSync}
                     disabled={syncing || !settings.platform_url}
-                    className={`w-full py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg ${
-                      syncing
+                    className={`w-full py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg ${syncing
                         ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                         : 'bg-emerald-600 text-white hover:bg-emerald-700 active:scale-[0.98]'
-                    }`}
+                      }`}
                   >
                     {syncing ? (
                       <>
@@ -342,8 +339,8 @@ export const Integration: React.FC = () => {
             <div>
               <h3 className="font-bold text-blue-900 mb-1 text-sm uppercase">How the sync works</h3>
               <p className="text-sm text-blue-800 leading-relaxed mb-4">
-                The system sends a <strong>POST</strong> request to the external platform. 
-                The request includes your <code>x-api-key</code> in the headers and the full restaurant 
+                The system sends a <strong>POST</strong> request to the external platform.
+                The request includes your <code>x-api-key</code> in the headers and the full restaurant
                 profile + menu in the body.
               </p>
               <div className="bg-gray-900 rounded-lg p-3 text-xs text-gray-300 font-mono overflow-x-auto">
@@ -352,9 +349,9 @@ export const Integration: React.FC = () => {
                 <p>Content-Type: application/json</p>
                 <p className="mt-2 text-emerald-400"># Body Structure</p>
                 <pre>
-{`{
+                  {`{
   "restaurantExternalId": "${settings.restaurant_external_id || 'partner-123'}",
-  "restaurantName": "SIVIK Restaurant",
+  "restaurantName": "Zakątek Smaków",
   "restaurantAddress": "${settings.restaurant_address || '...'}",
   "restaurantPhone": "${settings.restaurant_phone || '...'}",
   "currency": "${settings.currency}",
