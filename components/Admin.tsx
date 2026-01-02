@@ -285,7 +285,16 @@ export const Admin: React.FC = () => {
                         {(() => {
                           const subtotal = order.items.reduce((acc, item) => acc + ((item.price || 0) * item.quantity), 0);
                           const inferredPickup = Math.abs(subtotal - (order.total || 0)) < 0.01;
-                          const deliveryType = order.delivery_type === 'pickup' || !order.delivery_type || inferredPickup ? 'pickup' : 'delivery';
+
+                          let deliveryType: 'pickup' | 'delivery';
+                          if (order.delivery_type === 'pickup') {
+                            deliveryType = 'pickup';
+                          } else if (order.delivery_type === 'delivery') {
+                            deliveryType = 'delivery';
+                          } else {
+                            deliveryType = inferredPickup ? 'pickup' : 'delivery';
+                          }
+
                           const deliveryLabel = deliveryType === 'pickup' ? 'Odbiór na miejscu' : 'Dostawa';
                           return (
                             <div className="flex flex-col gap-1">
