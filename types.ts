@@ -34,6 +34,7 @@ export interface User {
   can_manage_users: boolean;
   can_manage_integrations: boolean;
   can_manage_payments: boolean;
+  can_manage_delivery: boolean;
   created_at: string;
   updated_at: string;
 }

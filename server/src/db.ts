@@ -21,6 +21,7 @@ export const initDb = async () => {
         phone VARCHAR(50),
         delivery_date DATE NOT NULL,
         delivery_time VARCHAR(10) NOT NULL,
+        delivery_type VARCHAR(20) DEFAULT 'delivery',
         payment_method VARCHAR(50) NOT NULL,
         items JSONB NOT NULL,
         total DECIMAL(10, 2) NOT NULL,
@@ -29,6 +30,11 @@ export const initDb = async () => {
       )
     `);
     console.log('Orders table initialized successfully');
+
+    // Ensure delivery_type column exists for existing orders table
+    await pool.query(`
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_type VARCHAR(20) DEFAULT 'delivery';
+    `);
 
     // Create users table
     await pool.query(`
@@ -40,6 +46,7 @@ export const initDb = async () => {
         can_manage_users BOOLEAN DEFAULT FALSE,
         can_manage_integrations BOOLEAN DEFAULT FALSE,
         can_manage_payments BOOLEAN DEFAULT FALSE,
+        can_manage_delivery BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -51,6 +58,7 @@ export const initDb = async () => {
       ALTER TABLE users ADD COLUMN IF NOT EXISTS can_manage_users BOOLEAN DEFAULT FALSE;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS can_manage_integrations BOOLEAN DEFAULT FALSE;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS can_manage_payments BOOLEAN DEFAULT FALSE;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS can_manage_delivery BOOLEAN DEFAULT FALSE;
     `);
     console.log('Users table columns verified');
 
@@ -334,8 +342,8 @@ export const initDb = async () => {
     if (parseInt(userCount.rows[0].count) === 0) {
       const passwordHash = await bcrypt.hash('admin0617', 10);
       await pool.query(
-        'INSERT INTO users (username, password_hash, role, can_manage_users, can_manage_integrations, can_manage_payments) VALUES ($1, $2, $3, $4, $5, $6)',
-        ['admin', passwordHash, 'admin', true, true, true]
+        'INSERT INTO users (username, password_hash, role, can_manage_users, can_manage_integrations, can_manage_payments, can_manage_delivery) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+        ['admin', passwordHash, 'admin', true, true, true, true]
       );
       console.log('Default admin user created successfully');
     }
@@ -368,6 +376,28 @@ export const initDb = async () => {
         );
       }
       console.log('Default payment methods seeded');
+    }
+
+    // Delivery settings table (single row)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS delivery_settings (
+        id SERIAL PRIMARY KEY,
+        is_enabled BOOLEAN DEFAULT FALSE,
+        min_order_amount DECIMAL(10,2) DEFAULT 0,
+        delivery_fee DECIMAL(10,2) DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('Delivery settings table initialized successfully');
+
+    const deliveryCount = await pool.query('SELECT COUNT(*) FROM delivery_settings');
+    if (parseInt(deliveryCount.rows[0].count) === 0) {
+      await pool.query(
+        'INSERT INTO delivery_settings (is_enabled, min_order_amount, delivery_fee) VALUES ($1, $2, $3)',
+        [false, 0, 0]
+      );
+      console.log('Default delivery settings created');
     }
   } catch (error) {
     console.error('Error initializing database:', error);

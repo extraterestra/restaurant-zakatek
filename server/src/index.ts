@@ -66,7 +66,7 @@ const refreshSession = async (req: express.Request, _res: express.Response, next
   if (req.session.userId) {
     try {
       const result = await pool.query(
-        'SELECT id, username, role, can_manage_users, can_manage_integrations, can_manage_payments FROM users WHERE id = $1',
+        'SELECT id, username, role, can_manage_users, can_manage_integrations, can_manage_payments, can_manage_delivery FROM users WHERE id = $1',
         [req.session.userId]
       );
       if (result.rows.length > 0) {
@@ -78,6 +78,7 @@ const refreshSession = async (req: express.Request, _res: express.Response, next
         req.session.canManageUsers = user.can_manage_users;
         req.session.canManageIntegrations = user.can_manage_integrations;
         req.session.canManagePayments = user.can_manage_payments;
+        req.session.canManageDelivery = user.can_manage_delivery;
         
         // Ensure session is saved if modified
         req.session.save((err) => {
@@ -104,6 +105,7 @@ declare module 'express-session' {
     canManageUsers: boolean;
     canManageIntegrations: boolean;
     canManagePayments: boolean;
+    canManageDelivery: boolean;
   }
 }
 
@@ -144,6 +146,17 @@ const requirePaymentManagement = (req: express.Request, res: express.Response, n
   }
   if (req.session.role !== 'admin' && !req.session.canManagePayments) {
     return res.status(403).json({ error: 'Payment management access required' });
+  }
+  next();
+};
+
+// Delivery-only middleware (role 'admin' or specific permission)
+const requireDeliveryManagement = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  if (req.session.role !== 'admin' && !req.session.canManageDelivery) {
+    return res.status(403).json({ error: 'Delivery configuration access required' });
   }
   next();
 };
@@ -205,6 +218,7 @@ app.post('/api/auth/login', async (req, res) => {
     req.session.canManageUsers = user.can_manage_users;
     req.session.canManageIntegrations = user.can_manage_integrations;
     req.session.canManagePayments = user.can_manage_payments;
+    req.session.canManageDelivery = user.can_manage_delivery;
 
     console.log('Login successful for:', username);
     console.log('Session ID:', req.sessionID);
@@ -230,7 +244,8 @@ app.post('/api/auth/login', async (req, res) => {
         role: user.role,
         can_manage_users: user.can_manage_users,
         can_manage_integrations: user.can_manage_integrations,
-        can_manage_payments: user.can_manage_payments
+      can_manage_payments: user.can_manage_payments,
+      can_manage_delivery: user.can_manage_delivery
       });
     });
   } catch (error) {
@@ -255,7 +270,7 @@ app.get('/api/auth/session', async (req, res) => {
     try {
       // Fetch latest user data from DB to be 100% sure
       const result = await pool.query(
-        'SELECT id, username, role, can_manage_users, can_manage_integrations, can_manage_payments FROM users WHERE id = $1',
+        'SELECT id, username, role, can_manage_users, can_manage_integrations, can_manage_payments, can_manage_delivery FROM users WHERE id = $1',
         [req.session.userId]
       );
 
@@ -271,6 +286,7 @@ app.get('/api/auth/session', async (req, res) => {
       req.session.canManageUsers = user.can_manage_users;
       req.session.canManageIntegrations = user.can_manage_integrations;
       req.session.canManagePayments = user.can_manage_payments;
+      req.session.canManageDelivery = user.can_manage_delivery;
 
       console.log(`[Auth Session Check] User: ${user.username}`);
 
@@ -282,7 +298,8 @@ app.get('/api/auth/session', async (req, res) => {
           role: user.role,
           can_manage_users: user.can_manage_users,
           can_manage_integrations: user.can_manage_integrations,
-          can_manage_payments: user.can_manage_payments
+          can_manage_payments: user.can_manage_payments,
+          can_manage_delivery: user.can_manage_delivery
         }
       });
     } catch (error) {
@@ -300,7 +317,7 @@ app.get('/api/auth/session', async (req, res) => {
 app.get('/api/users', requireUserManagement, async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, username, role, can_manage_users, can_manage_integrations, can_manage_payments, created_at, updated_at FROM users ORDER BY created_at DESC'
+      'SELECT id, username, role, can_manage_users, can_manage_integrations, can_manage_payments, can_manage_delivery, created_at, updated_at FROM users ORDER BY created_at DESC'
     );
     res.json(result.rows);
   } catch (error) {
@@ -312,7 +329,7 @@ app.get('/api/users', requireUserManagement, async (req, res) => {
 // Create user
 app.post('/api/users', requireUserManagement, async (req, res) => {
   try {
-    const { username, password, role, canManageUsers, canManageIntegrations, canManagePayments } = req.body;
+  const { username, password, role, canManageUsers, canManageIntegrations, canManagePayments, canManageDelivery } = req.body;
 
     if (!username || !password || !role) {
       return res.status(400).json({ error: 'Username, password, and role required' });
@@ -325,8 +342,8 @@ app.post('/api/users', requireUserManagement, async (req, res) => {
     const passwordHash = await bcrypt.hash(password, 10);
 
     const result = await pool.query(
-      'INSERT INTO users (username, password_hash, role, can_manage_users, can_manage_integrations, can_manage_payments) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, username, role, can_manage_users, can_manage_integrations, can_manage_payments, created_at, updated_at',
-      [username, passwordHash, role, canManageUsers ?? false, canManageIntegrations ?? false, canManagePayments ?? false]
+      'INSERT INTO users (username, password_hash, role, can_manage_users, can_manage_integrations, can_manage_payments, can_manage_delivery) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, username, role, can_manage_users, can_manage_integrations, can_manage_payments, can_manage_delivery, created_at, updated_at',
+      [username, passwordHash, role, canManageUsers ?? false, canManageIntegrations ?? false, canManagePayments ?? false, canManageDelivery ?? false]
     );
 
     res.status(201).json(result.rows[0]);
@@ -343,7 +360,7 @@ app.post('/api/users', requireUserManagement, async (req, res) => {
 app.patch('/api/users/:id', requireUserManagement, async (req, res) => {
   try {
     const { id } = req.params;
-    const { username, password, role, canManageUsers, canManageIntegrations, canManagePayments } = req.body;
+    const { username, password, role, canManageUsers, canManageIntegrations, canManagePayments, canManageDelivery } = req.body;
 
     let query = 'UPDATE users SET updated_at = CURRENT_TIMESTAMP';
     const values: any[] = [];
@@ -389,7 +406,13 @@ app.patch('/api/users/:id', requireUserManagement, async (req, res) => {
       paramCount++;
     }
 
-    query += ` WHERE id = $${paramCount} RETURNING id, username, role, can_manage_users, can_manage_integrations, can_manage_payments, created_at, updated_at`;
+    if (canManageDelivery !== undefined) {
+      query += `, can_manage_delivery = $${paramCount}`;
+      values.push(canManageDelivery);
+      paramCount++;
+    }
+
+    query += ` WHERE id = $${paramCount} RETURNING id, username, role, can_manage_users, can_manage_integrations, can_manage_payments, can_manage_delivery, created_at, updated_at`;
     values.push(id);
 
     const result = await pool.query(query, values);
@@ -439,17 +462,19 @@ app.delete('/api/users/:id', requireUserManagement, async (req, res) => {
 // Create order
 app.post('/api/orders', async (req, res) => {
   try {
-    const { customerName, address, phone, deliveryDate, deliveryTime, paymentMethod, items, total } = req.body;
+    const { customerName, address, phone, deliveryDate, deliveryTime, paymentMethod, items, total, deliveryType } = req.body;
 
     if (!customerName || !address || !deliveryDate || !deliveryTime || !paymentMethod || !items || !total) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
+    const normalizedDeliveryType = deliveryType === 'pickup' ? 'pickup' : 'delivery';
+
     const result = await pool.query(
-      `INSERT INTO orders (customer_name, address, phone, delivery_date, delivery_time, payment_method, items, total, status)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      `INSERT INTO orders (customer_name, address, phone, delivery_date, delivery_time, delivery_type, payment_method, items, total, status)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        RETURNING *`,
-      [customerName, address, phone, deliveryDate, deliveryTime, paymentMethod, JSON.stringify(items), total, 'pending']
+      [customerName, address, phone, deliveryDate, deliveryTime, normalizedDeliveryType, paymentMethod, JSON.stringify(items), total, 'pending']
     );
 
     res.status(201).json(result.rows[0]);
@@ -777,6 +802,93 @@ app.post('/api/external-menu', async (req, res) => {
   } catch (error) {
     console.error('External menu import failed:', error);
     res.status(500).json({ error: 'Failed to import menu from external platform' });
+  }
+});
+
+// ============ Delivery Settings ============
+
+// Public: get delivery settings (for checkout)
+app.get('/api/delivery-settings', async (_req, res) => {
+  try {
+    const result = await pool.query('SELECT is_enabled, min_order_amount, delivery_fee FROM delivery_settings LIMIT 1');
+    if (result.rows.length === 0) {
+      return res.json({ is_enabled: false, min_order_amount: 0, delivery_fee: 0 });
+    }
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error fetching delivery settings:', error);
+    res.status(500).json({ error: 'Failed to fetch delivery settings' });
+  }
+});
+
+// Admin: get delivery settings
+app.get('/api/admin/delivery-settings', requireDeliveryManagement, async (_req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM delivery_settings LIMIT 1');
+    res.json(result.rows[0] || { is_enabled: false, min_order_amount: 0, delivery_fee: 0 });
+  } catch (error) {
+    console.error('Error fetching admin delivery settings:', error);
+    res.status(500).json({ error: 'Failed to fetch delivery settings' });
+  }
+});
+
+// Admin: update delivery settings
+app.patch('/api/admin/delivery-settings', requireDeliveryManagement, async (req, res) => {
+  try {
+    const { isEnabled, minOrderAmount, deliveryFee } = req.body;
+
+    if (isEnabled === undefined && minOrderAmount === undefined && deliveryFee === undefined) {
+      return res.status(400).json({ error: 'No fields to update' });
+    }
+
+    const fields: string[] = [];
+    const values: any[] = [];
+    let idx = 1;
+
+    if (isEnabled !== undefined) {
+      fields.push(`is_enabled = $${idx++}`);
+      values.push(!!isEnabled);
+    }
+    if (minOrderAmount !== undefined) {
+      const val = parseFloat(minOrderAmount);
+      if (Number.isNaN(val) || val < 0) {
+        return res.status(400).json({ error: 'minOrderAmount must be non-negative number' });
+      }
+      fields.push(`min_order_amount = $${idx++}`);
+      values.push(val);
+    }
+    if (deliveryFee !== undefined) {
+      const val = parseFloat(deliveryFee);
+      if (Number.isNaN(val) || val < 0) {
+        return res.status(400).json({ error: 'deliveryFee must be non-negative number' });
+      }
+      fields.push(`delivery_fee = $${idx++}`);
+      values.push(val);
+    }
+
+    fields.push(`updated_at = CURRENT_TIMESTAMP`);
+
+    const result = await pool.query(
+      `UPDATE delivery_settings SET ${fields.join(', ')} WHERE id = 1 RETURNING *`
+    , values);
+
+    // If no row existed (edge), insert one
+    if (result.rows.length === 0) {
+      const insert = await pool.query(
+        'INSERT INTO delivery_settings (id, is_enabled, min_order_amount, delivery_fee) VALUES (1, $1, $2, $3) RETURNING *',
+        [
+          isEnabled ?? false,
+          minOrderAmount ?? 0,
+          deliveryFee ?? 0
+        ]
+      );
+      return res.json(insert.rows[0]);
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error updating delivery settings:', error);
+    res.status(500).json({ error: 'Failed to update delivery settings' });
   }
 });
 
