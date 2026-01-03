@@ -27,6 +27,17 @@ export interface CartItem extends Product {
   quantity: number;
 }
 
+export interface PaymentMethod {
+  id?: number;
+  name: string;
+  display_name: string;
+  is_enabled: boolean;
+}
+
+export interface OrderingStatus {
+  isOrderingEnabled: boolean;
+}
+
 export interface User {
   id: number;
   username: string;

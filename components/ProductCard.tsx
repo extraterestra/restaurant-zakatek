@@ -5,14 +5,15 @@ interface ProductCardProps {
   product: Product;
   onAddToCart: (product: Product) => void;
   onViewDetails: (product: Product) => void;
+  orderingDisabled?: boolean;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewDetails }) => {
+export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewDetails, orderingDisabled = false }) => {
   const [isAdded, setIsAdded] = useState(false);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (product.isEnabled === false) return;
+    if (product.isEnabled === false || orderingDisabled) return;
     onAddToCart(product);
     setIsAdded(true);
 
@@ -22,7 +23,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, 
     }, 1500);
   };
 
-  const isDisabled = product.isEnabled === false;
+  // Treat anything except an explicit false as enabled (so undefined stays active)
+  const isEnabled = product.isEnabled !== false;
+  const isDisabled = !isEnabled;
+  const actionDisabled = isDisabled || orderingDisabled;
 
   return (
     <div
@@ -83,10 +87,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, 
 
         <button
           onClick={handleAddToCart}
-          disabled={isAdded || isDisabled}
+          disabled={isAdded || actionDisabled}
           className={`w-full py-3 rounded-lg font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 border-2 ${isAdded
             ? 'bg-sienna-600 text-white border-sienna-600 scale-95 shadow-inner'
-            : isDisabled
+            : actionDisabled
               ? 'bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed'
               : 'bg-[#453F36] text-white border-[#453F36] hover:bg-[#A0522D] hover:border-[#A0522D] hover:shadow-md'
             }`}
@@ -95,9 +99,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, 
             <>
               <i className="fas fa-check"></i> Dodano do koszyka
             </>
-          ) : isDisabled ? (
+          ) : actionDisabled ? (
             <>
-              <i className="fas fa-times-circle"></i> Niedostępne
+              <i className="fas fa-times-circle"></i> {orderingDisabled ? 'Zadzwoń, aby zamówić' : 'Niedostępne'}
             </>
           ) : (
             <>

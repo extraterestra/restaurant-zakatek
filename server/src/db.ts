@@ -378,6 +378,25 @@ export const initDb = async () => {
       console.log('Default payment methods seeded');
     }
 
+    // Online ordering settings (single row)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS ordering_settings (
+        id SERIAL PRIMARY KEY,
+        is_ordering_enabled BOOLEAN DEFAULT TRUE,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    await pool.query(`
+      ALTER TABLE ordering_settings
+      ADD COLUMN IF NOT EXISTS is_ordering_enabled BOOLEAN DEFAULT TRUE,
+      ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    `);
+    const orderingCount = await pool.query('SELECT COUNT(*) FROM ordering_settings');
+    if (parseInt(orderingCount.rows[0].count) === 0) {
+      await pool.query('INSERT INTO ordering_settings (is_ordering_enabled) VALUES (TRUE)');
+      console.log('Default ordering setting created (enabled)');
+    }
+
     // Delivery settings table (single row)
     await pool.query(`
       CREATE TABLE IF NOT EXISTS delivery_settings (

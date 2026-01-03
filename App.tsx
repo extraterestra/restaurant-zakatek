@@ -331,6 +331,8 @@ function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [orderingEnabled, setOrderingEnabled] = useState<boolean>(true);
+  const [orderingStatusLoaded, setOrderingStatusLoaded] = useState(false);
 
   // Load menu items from backend (with fallback to static constants)
   useEffect(() => {
@@ -369,6 +371,27 @@ function App() {
     fetchMenu();
   }, []);
 
+  // Fetch ordering availability
+  useEffect(() => {
+    const fetchOrderingStatus = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/ordering-status`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch ordering status');
+        }
+        const data = await response.json();
+        setOrderingEnabled(data.isOrderingEnabled ?? true);
+      } catch (err) {
+        console.error('Error fetching ordering status:', err);
+        setOrderingEnabled(true);
+      } finally {
+        setOrderingStatusLoaded(true);
+      }
+    };
+
+    fetchOrderingStatus();
+  }, []);
+
   // Filter and sort products
   const filteredProducts = useMemo(() => {
     let products = [...menuItems];
@@ -403,6 +426,9 @@ function App() {
 
   // Cart logic
   const addToCart = (product: Product) => {
+    if (!orderingEnabled) {
+      return;
+    }
     setCartItems(prev => {
       const existing = prev.find(item => item.id === product.id);
       if (existing) {
@@ -429,6 +455,10 @@ function App() {
   const cartTotalPrice = cartItems.reduce((acc, item) => acc + ((item.price || 0) * item.quantity), 0);
 
   const handleCheckoutStart = () => {
+    if (!orderingEnabled) {
+      alert('Przepraszamy, teraz nie mozemy obslugowac zamowienia online, zeby zlozyc zamowienie prosimy dzwonic na tel: +48 570 719 819');
+      return;
+    }
     setIsCartOpen(false);
     setIsCheckoutOpen(true);
   };
@@ -492,6 +522,18 @@ function App() {
             <Hero />
 
             <div id="menu-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+              {orderingStatusLoaded && !orderingEnabled && (
+                <div className="mb-6">
+                  <div className="bg-amber-50 border border-amber-200 text-amber-900 px-4 py-3 rounded-lg shadow-sm flex items-start gap-3">
+                    <i className="fas fa-info-circle mt-1"></i>
+                    <div>
+                      <p className="font-semibold">Przepraszamy, teraz nie mozemy obslugowac zamowienia online.</p>
+                      <p className="text-sm">Zeby zlozyc zamowienie prosimy dzwonic na tel: +48 570 719 819</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="flex flex-col md:flex-row justify-between items-center mb-10">
                 <h2 className="text-3xl font-bold text-gray-900 mb-4 md:mb-0">Nasze Menu</h2>
 
@@ -531,6 +573,7 @@ function App() {
                           product={product}
                           onAddToCart={addToCart}
                           onViewDetails={setSelectedProduct}
+                          orderingDisabled={!orderingEnabled}
                         />
                       ))}
                     </div>
@@ -619,6 +662,7 @@ function App() {
         items={cartItems}
         onUpdateQuantity={updateQuantity}
         onCheckout={handleCheckoutStart}
+        orderingDisabled={!orderingEnabled}
       />
 
       <CheckoutModal
@@ -634,6 +678,7 @@ function App() {
         onClose={() => setSelectedProduct(null)}
         product={selectedProduct || menuItems[0]}
         onAddToCart={addToCart}
+        orderingDisabled={!orderingEnabled}
       />
 
 
