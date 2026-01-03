@@ -12,6 +12,8 @@ export const PaymentConfiguration: React.FC = () => {
     const [savingName, setSavingName] = useState<string | null>(null);
     const [editTarget, setEditTarget] = useState<PaymentMethod | null>(null);
     const [editDisplayName, setEditDisplayName] = useState('');
+    const [isOrderingEnabled, setIsOrderingEnabled] = useState<boolean>(true);
+    const [orderingLoading, setOrderingLoading] = useState(false);
 
     const fetchMethods = async () => {
         try {
@@ -31,6 +33,23 @@ export const PaymentConfiguration: React.FC = () => {
             setError(err.message || 'Failed to fetch payment methods');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchOrderingStatus = async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/admin/ordering-status`, {
+                credentials: 'include',
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch ordering status');
+            }
+
+            const data = await response.json();
+            setIsOrderingEnabled(data.isOrderingEnabled);
+        } catch (err: any) {
+            setError(err.message || 'Failed to fetch ordering status');
         }
     };
 
@@ -82,6 +101,7 @@ export const PaymentConfiguration: React.FC = () => {
     useEffect(() => {
         checkSession();
         fetchMethods();
+        fetchOrderingStatus();
     }, []);
 
     const handleToggle = async (name: string, isEnabled: boolean) => {
@@ -102,6 +122,31 @@ export const PaymentConfiguration: React.FC = () => {
             setMethods(methods.map(m => m.name === name ? { ...m, is_enabled: isEnabled } : m));
         } catch (err: any) {
             alert(err.message || 'Failed to update payment method');
+        }
+    };
+
+    const handleOrderingToggle = async (enabled: boolean) => {
+        try {
+            setOrderingLoading(true);
+            const response = await fetch(`${API_BASE_URL}/api/admin/ordering-status`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({ isOrderingEnabled: enabled }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update ordering availability');
+            }
+
+            const data = await response.json();
+            setIsOrderingEnabled(data.isOrderingEnabled);
+        } catch (err: any) {
+            alert(err.message || 'Failed to update ordering availability');
+        } finally {
+            setOrderingLoading(false);
         }
     };
 
@@ -143,6 +188,29 @@ export const PaymentConfiguration: React.FC = () => {
                     )}
 
                     <div className="p-6 space-y-6">
+                        <div className="p-4 rounded-xl border-2 border-sienna-100 bg-sienna-50/40 flex items-center justify-between gap-4">
+                            <div>
+                                <h3 className="font-bold text-gray-900">Online ordering availability</h3>
+                                <p className="text-sm text-gray-600 mt-1">
+                                    Switch possibility to order online for customers.
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => handleOrderingToggle(!isOrderingEnabled)}
+                                disabled={orderingLoading}
+                                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-sienna-500 focus:ring-offset-2 ${
+                                    isOrderingEnabled ? 'bg-sienna-600' : 'bg-gray-200'
+                                } ${orderingLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                            >
+                                <span
+                                    aria-hidden="true"
+                                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                        isOrderingEnabled ? 'translate-x-5' : 'translate-x-0'
+                                    }`}
+                                />
+                            </button>
+                        </div>
+
                         <div className="grid gap-4">
                             {methods.map((method) => (
                                 <div 

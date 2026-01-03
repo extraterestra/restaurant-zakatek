@@ -6,9 +6,10 @@ interface ProductModalProps {
     isOpen: boolean;
     onClose: () => void;
     onAddToCart: (product: Product) => void;
+    orderingDisabled?: boolean;
 }
 
-export const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onClose, onAddToCart }) => {
+export const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onClose, onAddToCart, orderingDisabled = false }) => {
     const [isAdded, setIsAdded] = useState(false);
 
     // Reset state when product changes or modal closes
@@ -18,11 +19,14 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onC
 
     if (!isOpen) return null;
 
-    const isDisabled = product.isEnabled === false;
+    // Treat anything except an explicit false as enabled (so undefined stays active)
+    const isEnabled = product.isEnabled !== false;
+    const isDisabled = !isEnabled;
+    const actionDisabled = isDisabled || orderingDisabled;
 
     const handleAddToCart = (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (isDisabled) return;
+        if (actionDisabled) return;
         onAddToCart(product);
         setIsAdded(true);
         setTimeout(() => setIsAdded(false), 1500);
@@ -113,10 +117,10 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onC
                     <div className="mt-auto pt-4 md:pt-0">
                         <button
                             onClick={handleAddToCart}
-                            disabled={isAdded || isDisabled}
+                            disabled={isAdded || actionDisabled}
                             className={`w-full py-4 rounded-xl font-bold text-base transition-all duration-300 flex items-center justify-center gap-2 transform active:scale-95 ${isAdded
                                 ? 'bg-lime-500 text-white shadow-inner cursor-default'
-                                : isDisabled
+                                : actionDisabled
                                     ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                                     : 'bg-gray-900 text-white hover:bg-sienna-600 hover:shadow-lg shadow-sienna-500/30'
                                 }`}
@@ -125,9 +129,9 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onC
                                 <>
                                     <i className="fas fa-check animate-bounce"></i> Dodano do koszyka!
                                 </>
-                            ) : isDisabled ? (
+                            ) : actionDisabled ? (
                                 <>
-                                    <i className="fas fa-times-circle"></i> Niedostępne
+                                    <i className="fas fa-times-circle"></i> {orderingDisabled ? 'Zadzwoń, aby zamówić' : 'Niedostępne'}
                                 </>
                             ) : (
                                 <>
