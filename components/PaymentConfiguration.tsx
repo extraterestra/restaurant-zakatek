@@ -105,6 +105,7 @@ export const PaymentConfiguration: React.FC = () => {
     }, []);
 
     const handleToggle = async (name: string, isEnabled: boolean) => {
+        if (!isOrderingEnabled) return;
         try {
             const response = await fetch(`${API_BASE_URL}/api/admin/payment-methods/${name}`, {
                 method: 'PATCH',
@@ -151,6 +152,7 @@ export const PaymentConfiguration: React.FC = () => {
     };
 
     const openEditModal = (method: PaymentMethod) => {
+        if (!isOrderingEnabled) return;
         setEditTarget(method);
         setEditDisplayName(method.display_name);
     };
@@ -243,9 +245,10 @@ export const PaymentConfiguration: React.FC = () => {
                                     <div className="flex items-center gap-3">
                                         <button
                                             onClick={() => handleToggle(method.name, !method.is_enabled)}
+                                            disabled={!isOrderingEnabled}
                                             className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-sienna-500 focus:ring-offset-2 ${
                                                 method.is_enabled ? 'bg-sienna-600' : 'bg-gray-200'
-                                            }`}
+                                            } ${!isOrderingEnabled ? 'opacity-60 cursor-not-allowed' : ''}`}
                                         >
                                             <span
                                                 aria-hidden="true"
@@ -256,7 +259,10 @@ export const PaymentConfiguration: React.FC = () => {
                                         </button>
                                         <button
                                             onClick={() => openEditModal(method)}
-                                            className="px-3 py-2 text-sm font-semibold rounded-lg border border-sienna-200 text-sienna-700 hover:bg-sienna-50"
+                                            disabled={!isOrderingEnabled}
+                                            className={`px-3 py-2 text-sm font-semibold rounded-lg border border-sienna-200 text-sienna-700 hover:bg-sienna-50 ${
+                                                !isOrderingEnabled ? 'opacity-60 cursor-not-allowed' : ''
+                                            }`}
                                         >
                                             Edit
                                         </button>
