@@ -960,6 +960,65 @@ app.post('/api/admin/integration/sync', requireIntegrationManagement, async (_re
   }
 });
 
+// ============ Ordering Availability Endpoints ============
+
+const ensureOrderingRow = async () => {
+  const existing = await pool.query('SELECT id FROM ordering_settings LIMIT 1');
+  if (existing.rows.length === 0) {
+    await pool.query('INSERT INTO ordering_settings (is_ordering_enabled) VALUES (TRUE)');
+  }
+};
+
+// Public: check if online ordering is allowed
+app.get('/api/ordering-status', async (_req, res) => {
+  try {
+    await ensureOrderingRow();
+    const result = await pool.query('SELECT is_ordering_enabled FROM ordering_settings LIMIT 1');
+    res.json({ isOrderingEnabled: result.rows[0].is_ordering_enabled });
+  } catch (error) {
+    console.error('Error fetching ordering status:', error);
+    res.status(500).json({ error: 'Failed to fetch ordering status' });
+  }
+});
+
+// Admin: read ordering status
+app.get('/api/admin/ordering-status', requirePaymentManagement, async (_req, res) => {
+  try {
+    await ensureOrderingRow();
+    const result = await pool.query('SELECT is_ordering_enabled FROM ordering_settings LIMIT 1');
+    res.json({ isOrderingEnabled: result.rows[0].is_ordering_enabled });
+  } catch (error) {
+    console.error('Error fetching admin ordering status:', error);
+    res.status(500).json({ error: 'Failed to fetch ordering status' });
+  }
+});
+
+// Admin: update ordering status
+app.patch('/api/admin/ordering-status', requirePaymentManagement, async (req, res) => {
+  try {
+    const { isOrderingEnabled } = req.body;
+    if (typeof isOrderingEnabled !== 'boolean') {
+      return res.status(400).json({ error: 'isOrderingEnabled must be a boolean' });
+    }
+
+    await ensureOrderingRow();
+    const update = await pool.query(
+      'UPDATE ordering_settings SET is_ordering_enabled = $1, updated_at = CURRENT_TIMESTAMP RETURNING is_ordering_enabled',
+      [isOrderingEnabled]
+    );
+
+    if (update.rows.length === 0) {
+      await pool.query('INSERT INTO ordering_settings (is_ordering_enabled) VALUES ($1)', [isOrderingEnabled]);
+      return res.json({ isOrderingEnabled });
+    }
+
+    res.json({ isOrderingEnabled: update.rows[0].is_ordering_enabled });
+  } catch (error) {
+    console.error('Error updating ordering status:', error);
+    res.status(500).json({ error: 'Failed to update ordering status' });
+  }
+});
+
 // ============ Payment Configuration Endpoints ============
 
 // Public: get enabled payment methods

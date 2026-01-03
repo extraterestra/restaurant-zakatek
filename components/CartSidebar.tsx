@@ -8,6 +8,7 @@ interface CartSidebarProps {
   items: CartItem[];
   onUpdateQuantity: (id: string, delta: number) => void;
   onCheckout: () => void;
+  orderingDisabled?: boolean;
 }
 
 export const CartSidebar: React.FC<CartSidebarProps> = ({
@@ -15,7 +16,8 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
   onClose,
   items,
   onUpdateQuantity,
-  onCheckout
+  onCheckout,
+  orderingDisabled = false
 }) => {
   const subtotal = items.reduce((acc, item) => acc + ((item.price || 0) * item.quantity), 0);
   const total = subtotal;
@@ -90,9 +92,21 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
                 </div>
               </div>
 
+              {orderingDisabled && (
+                <div className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 flex gap-2">
+                  <i className="fas fa-info-circle mt-0.5"></i>
+                  <span>Przepraszamy, teraz nie mozemy obslugowac zamowienia online. Zeby zlozyc zamowienie prosimy dzwonic na tel: +48 570 719 819</span>
+                </div>
+              )}
+
               <button
                 onClick={onCheckout}
-                className="w-full bg-sienna-600 text-white py-4 rounded-xl font-bold hover:bg-sienna-700 transition-colors shadow-lg shadow-sienna-900/20"
+                disabled={orderingDisabled}
+                className={`w-full py-4 rounded-xl font-bold transition-colors shadow-lg shadow-sienna-900/20 ${
+                  orderingDisabled
+                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                    : 'bg-sienna-600 text-white hover:bg-sienna-700'
+                }`}
               >
                 Do kasy
               </button>
