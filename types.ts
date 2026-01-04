@@ -27,6 +27,14 @@ export interface CartItem extends Product {
   quantity: number;
 }
 
+export interface FoodCategory {
+  id: number;
+  name: string;
+  is_enabled: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface PaymentMethod {
   id?: number;
   name: string;

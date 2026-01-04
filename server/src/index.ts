@@ -667,6 +667,94 @@ app.delete('/api/admin/menu-items/:id', requireAuth, async (req, res) => {
   }
 });
 
+// ============ Food Categories (Admin) ============
+
+// Get all categories (including disabled)
+app.get('/api/admin/food-categories', requireAuth, async (_req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT id, name, is_enabled, created_at, updated_at FROM food_categories ORDER BY name ASC'
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching food categories:', error);
+    res.status(500).json({ error: 'Failed to fetch categories' });
+  }
+});
+
+// Create category
+app.post('/api/admin/food-categories', requireAuth, async (req, res) => {
+  try {
+    const { name } = req.body;
+    if (!name || !name.trim()) {
+      return res.status(400).json({ error: 'Category name is required' });
+    }
+
+    const result = await pool.query(
+      `INSERT INTO food_categories (name, is_enabled)
+       VALUES ($1, TRUE)
+       ON CONFLICT (name) DO NOTHING
+       RETURNING id, name, is_enabled, created_at, updated_at`,
+      [name.trim()]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(409).json({ error: 'Category name already exists' });
+    }
+
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error('Error creating category:', error);
+    res.status(500).json({ error: 'Failed to create category' });
+  }
+});
+
+// Update category enabled flag
+app.patch('/api/admin/food-categories/:id', requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { isEnabled } = req.body;
+
+    if (typeof isEnabled !== 'boolean') {
+      return res.status(400).json({ error: 'isEnabled must be boolean' });
+    }
+
+    const result = await pool.query(
+      `UPDATE food_categories
+       SET is_enabled = $1, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $2
+       RETURNING id, name, is_enabled, created_at, updated_at`,
+      [isEnabled, id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Category not found' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error updating category:', error);
+    res.status(500).json({ error: 'Failed to update category' });
+  }
+});
+
+// Delete category
+app.delete('/api/admin/food-categories/:id', requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query('DELETE FROM food_categories WHERE id = $1 RETURNING id', [id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Category not found' });
+    }
+
+    res.json({ message: 'Category deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting category:', error);
+    res.status(500).json({ error: 'Failed to delete category' });
+  }
+});
+
 // ============ Integration Endpoints (Admin only or specific permission) ============
 
 // Get integration settings
