@@ -59,7 +59,10 @@ app.use(session({
 }));
 
 // Initialize database
-initDb().catch(console.error);
+console.log('Calling initDb...');
+initDb().catch(err => {
+  console.error('CRITICAL: initDb failed:', err);
+});
 
 // Middleware to refresh session from DB
 const refreshSession = async (req: express.Request, _res: express.Response, next: express.NextFunction) => {

@@ -11,6 +11,7 @@ const pool = new Pool({
 });
 
 export const initDb = async () => {
+  console.log('Starting database initialization...');
   try {
     // Create orders table
     await pool.query(`
