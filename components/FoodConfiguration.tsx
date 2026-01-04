@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Category, AuthSession } from '../types';
+import React, { useEffect, useMemo, useState } from 'react';
+import { AuthSession, FoodCategory } from '../types';
 import { AdminLayout } from './AdminLayout';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
@@ -22,17 +22,10 @@ interface MenuItemForm {
   description: string;
   imageUrl: string;
   calories: string;
-  category: Category;
+  category: string;
   price: string;
   isEnabled: boolean;
 }
-
-const CATEGORY_OPTIONS: { value: Category; label: string }[] = [
-  { value: Category.SUSHI, label: 'Sushi' },
-  { value: Category.BURGERS, label: 'Burgery' },
-  { value: Category.SALADS, label: 'Sałatki' },
-  { value: Category.SHAWARMA, label: 'Shoarma' },
-];
 
 export const FoodConfiguration: React.FC = () => {
   const [items, setItems] = useState<MenuItem[]>([]);
@@ -45,12 +38,15 @@ export const FoodConfiguration: React.FC = () => {
     key: 'category' | 'calories' | 'price';
     direction: 'asc' | 'desc';
   }>({ key: 'category', direction: 'asc' });
+  const [categories, setCategories] = useState<FoodCategory[]>([]);
+  const [categoryName, setCategoryName] = useState('');
+  const [categorySaving, setCategorySaving] = useState(false);
   const [form, setForm] = useState<MenuItemForm>({
     name: '',
     description: '',
     imageUrl: '',
     calories: '',
-    category: Category.SUSHI,
+    category: '',
     price: '',
     isEnabled: true,
   });
@@ -102,6 +98,29 @@ export const FoodConfiguration: React.FC = () => {
     }
   };
 
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/food-categories`, {
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        throw new Error('Failed to fetch categories');
+      }
+      const data = await res.json();
+      setCategories(data);
+      // If no category chosen yet, set default to first enabled
+      if (!form.category && Array.isArray(data)) {
+        const firstEnabled = data.find((c: FoodCategory) => c.is_enabled);
+        if (firstEnabled) {
+          setForm((prev) => ({ ...prev, category: firstEnabled.name }));
+        }
+      }
+    } catch (err: any) {
+      console.error('Error fetching categories:', err);
+      setError(err.message || 'Failed to fetch categories');
+    }
+  };
+
   const handleSort = (key: 'category' | 'calories' | 'price') => {
     let direction: 'asc' | 'desc' = 'asc';
     if (sortConfig.key === key && sortConfig.direction === 'asc') {
@@ -137,6 +156,7 @@ export const FoodConfiguration: React.FC = () => {
   useEffect(() => {
     checkSession();
     fetchItems();
+    fetchCategories();
   }, []);
 
   const openCreate = () => {
@@ -146,7 +166,7 @@ export const FoodConfiguration: React.FC = () => {
       description: '',
       imageUrl: '',
       calories: '',
-      category: Category.SUSHI,
+      category: enabledCategories[0] ?? '',
       price: '',
       isEnabled: true,
     });
@@ -160,7 +180,7 @@ export const FoodConfiguration: React.FC = () => {
       description: item.description,
       imageUrl: item.image_url,
       calories: item.calories != null ? String(item.calories) : '',
-      category: item.category as Category,
+      category: item.category,
       price: item.price != null ? item.price.toString() : '',
       isEnabled: item.is_enabled,
     });
@@ -204,6 +224,70 @@ export const FoodConfiguration: React.FC = () => {
       await fetchItems();
     } catch (err: any) {
       alert(err.message || 'Failed to save menu item');
+    }
+  };
+
+  const enabledCategories = useMemo(
+    () => categories.filter((c) => c.is_enabled).map((c) => c.name),
+    [categories]
+  );
+
+  const handleCreateCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!categoryName.trim()) return;
+    try {
+      setCategorySaving(true);
+      const res = await fetch(`${API_BASE_URL}/api/admin/food-categories`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ name: categoryName.trim() }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to create category');
+      }
+      setCategoryName('');
+      await fetchCategories();
+    } catch (err: any) {
+      alert(err.message || 'Failed to create category');
+    } finally {
+      setCategorySaving(false);
+    }
+  };
+
+  const handleToggleCategory = async (cat: FoodCategory) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/food-categories/${cat.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ isEnabled: !cat.is_enabled }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to update category');
+      }
+      await fetchCategories();
+    } catch (err: any) {
+      alert(err.message || 'Failed to update category');
+    }
+  };
+
+  const handleDeleteCategory = async (cat: FoodCategory) => {
+    if (!confirm(`Delete category "${cat.name}"? This cannot be undone.`)) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/food-categories/${cat.id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to delete category');
+      }
+      await fetchCategories();
+    } catch (err: any) {
+      alert(err.message || 'Failed to delete category');
     }
   };
 
@@ -467,22 +551,27 @@ export const FoodConfiguration: React.FC = () => {
                   <label className="block text-sm font-semibold text-gray-700 mb-1">
                     Category
                   </label>
-                  <select
-                    value={form.category}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        category: e.target.value as Category,
-                      })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  >
-                    {CATEGORY_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
+                    <select
+                      value={form.category}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          category: e.target.value,
+                        })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                      disabled={enabledCategories.length === 0}
+                    >
+                      {enabledCategories.length === 0 ? (
+                        <option value="">No enabled categories. Create one below.</option>
+                      ) : (
+                        enabledCategories.map((name) => (
+                          <option key={name} value={name}>
+                            {name}
+                          </option>
+                        ))
+                      )}
+                    </select>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">
@@ -533,6 +622,79 @@ export const FoodConfiguration: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Categories management */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="px-6 py-4 bg-gray-900 text-white flex justify-between items-center">
+            <div>
+              <h2 className="text-xl font-bold">Food categories</h2>
+              <p className="text-gray-300 text-sm mt-0.5">
+                Create, disable, or delete categories for dish creation.
+              </p>
+            </div>
+          </div>
+
+          <div className="p-6 space-y-6">
+            <form onSubmit={handleCreateCategory} className="flex flex-col md:flex-row gap-3 items-start">
+              <div className="flex-1 w-full">
+                <label className="block text-sm font-semibold text-gray-700 mb-1">New category name</label>
+                <input
+                  type="text"
+                  value={categoryName}
+                  onChange={(e) => setCategoryName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  placeholder="e.g. Desery"
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={categorySaving}
+                className="md:w-auto w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors disabled:opacity-60"
+              >
+                {categorySaving ? 'Saving...' : 'Add category'}
+              </button>
+            </form>
+
+            <div className="border border-gray-100 rounded-lg overflow-hidden">
+              <div className="bg-gray-50 px-4 py-2 text-xs font-semibold uppercase text-gray-600 tracking-wide">
+                Existing categories
+              </div>
+              {categories.length === 0 ? (
+                <div className="p-4 text-sm text-gray-500">No categories yet. Add your first one above.</div>
+              ) : (
+                <ul className="divide-y divide-gray-100">
+                  {categories.map((cat) => (
+                    <li key={cat.id} className="px-4 py-3 flex items-center justify-between">
+                      <div>
+                        <div className="font-semibold text-gray-900">{cat.name}</div>
+                        <div className="text-xs text-gray-500">
+                          {cat.is_enabled ? 'Enabled (available in Add Dish dropdown)' : 'Disabled (hidden from dropdown)'}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => handleToggleCategory(cat)}
+                          className="text-xs font-semibold text-emerald-600 hover:text-emerald-800"
+                        >
+                          {cat.is_enabled ? 'Disable' : 'Enable'}
+                        </button>
+                        <button
+                          onClick={() => handleDeleteCategory(cat)}
+                          className="text-xs font-semibold text-red-600 hover:text-red-800"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
     </AdminLayout>
   );
 };

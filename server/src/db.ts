@@ -378,6 +378,39 @@ export const initDb = async () => {
       console.log('Default payment methods seeded');
     }
 
+    // Food categories table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS food_categories (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(100) UNIQUE NOT NULL,
+        is_enabled BOOLEAN DEFAULT TRUE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    await pool.query(`
+      ALTER TABLE food_categories
+      ADD COLUMN IF NOT EXISTS name VARCHAR(100) UNIQUE NOT NULL,
+      ADD COLUMN IF NOT EXISTS is_enabled BOOLEAN DEFAULT TRUE,
+      ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    `);
+
+    // Seed categories from existing menu_items if table empty
+    const catCount = await pool.query('SELECT COUNT(*) FROM food_categories');
+    if (parseInt(catCount.rows[0].count) === 0) {
+      const distinctCats = await pool.query('SELECT DISTINCT category FROM menu_items');
+      for (const row of distinctCats.rows) {
+        if (row.category) {
+          await pool.query(
+            'INSERT INTO food_categories (name, is_enabled) VALUES ($1, TRUE) ON CONFLICT (name) DO NOTHING',
+            [row.category]
+          );
+        }
+      }
+      console.log('Seeded food categories from existing menu items');
+    }
+
     // Online ordering settings (single row)
     await pool.query(`
       CREATE TABLE IF NOT EXISTS ordering_settings (
