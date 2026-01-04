@@ -59,7 +59,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
             console.log('Session check after login:', sessionData);
 
             if (sessionData.isAuthenticated) {
-            onLoginSuccess();
+                onLoginSuccess();
             } else {
                 console.error('Session not established after login');
                 throw new Error('Session not established. Please try again.');
@@ -80,7 +80,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
                     <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-600 rounded-full mb-4">
                         <i className="fas fa-utensils text-2xl text-white"></i>
                     </div>
-                    <h1 className="text-3xl font-bold text-white mb-2">SIVIK Restaurant</h1>
+                    <h1 className="text-3xl font-bold text-white mb-2">Zakątek Smaków</h1>
                     <p className="text-gray-400">Admin Panel</p>
                 </div>
 

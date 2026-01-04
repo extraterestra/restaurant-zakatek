@@ -65,6 +65,22 @@ function App() {
   };
 
   useEffect(() => {
+
+    // Update document title
+    const updateTitle = (path: string) => {
+      const baseTitle = 'Zakątek Smaków';
+      let subTitle = '';
+
+      if (path === '/' || path === '/index.html') subTitle = 'Menu';
+      else if (path === '/o-nas') subTitle = 'O Nas';
+      else if (path === '/kariera') subTitle = 'Kariera';
+      else if (path === '/polityka-prywatnosci') subTitle = 'Polityka Prywatności';
+      else if (path === '/regulamin') subTitle = 'Regulamin';
+      else if (path.startsWith('/admin')) subTitle = 'Admin';
+
+      document.title = subTitle ? `${baseTitle} | ${subTitle}` : baseTitle;
+    };
+
     // Update path if it changed
     const updatePath = () => {
       const newPath = window.location.pathname;
@@ -75,6 +91,7 @@ function App() {
 
     // Check immediately
     updatePath();
+    updateTitle(currentPath);
 
     // Listen for navigation events
     window.addEventListener('popstate', updatePath);
